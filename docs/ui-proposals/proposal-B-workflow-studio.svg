@@ -1,0 +1,83 @@
+<svg width="1600" height="1000" viewBox="0 0 1600 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1000" fill="#F5F7FB"/>
+  <rect x="0" y="0" width="1600" height="88" fill="#FFFFFF"/>
+  <line x1="0" y1="88.5" x2="1600" y2="88.5" stroke="#D9E1EE"/>
+  <text x="48" y="44" font-size="30" font-family="Arial, sans-serif" font-weight="700" fill="#18263A">K-Storm</text>
+  <text x="48" y="66" font-size="14" font-family="Arial, sans-serif" fill="#6C7A92">Workflow Studio</text>
+
+  <rect x="470" y="24" width="150" height="40" rx="20" fill="#516BFF"/>
+  <text x="545" y="49" text-anchor="middle" font-size="15" font-family="Arial, sans-serif" font-weight="700" fill="#FFFFFF">Step 1 输入</text>
+  <rect x="640" y="24" width="150" height="40" rx="20" fill="#E9EEFA"/>
+  <text x="715" y="49" text-anchor="middle" font-size="15" font-family="Arial, sans-serif" font-weight="700" fill="#46536B">Step 2 讨论</text>
+  <rect x="810" y="24" width="150" height="40" rx="20" fill="#E9EEFA"/>
+  <text x="885" y="49" text-anchor="middle" font-size="15" font-family="Arial, sans-serif" font-weight="700" fill="#46536B">Step 3 报告</text>
+
+  <rect x="1318" y="22" width="120" height="42" rx="12" fill="#FFFFFF" stroke="#D3DCEC"/>
+  <rect x="1450" y="22" width="102" height="42" rx="12" fill="#FFFFFF" stroke="#D3DCEC"/>
+  <text x="1378" y="48" text-anchor="middle" font-size="14" font-family="Arial, sans-serif" font-weight="700" fill="#334155">历史</text>
+  <text x="1501" y="48" text-anchor="middle" font-size="14" font-family="Arial, sans-serif" font-weight="700" fill="#334155">设置</text>
+
+  <rect x="36" y="124" width="1528" height="812" rx="24" fill="#FFFFFF" stroke="#DCE4F0"/>
+  <rect x="72" y="156" width="368" height="748" rx="22" fill="#F8FAFE" stroke="#E2E9F5"/>
+  <text x="104" y="206" font-size="20" font-family="Arial, sans-serif" font-weight="700" fill="#18263A">当前阶段摘要</text>
+  <text x="104" y="232" font-size="14" font-family="Arial, sans-serif" fill="#6A7892">其余阶段不消失，但只保留摘要，降低拥挤感</text>
+
+  <rect x="104" y="270" width="304" height="160" rx="18" fill="#FFFFFF" stroke="#D9E2F0"/>
+  <text x="128" y="302" font-size="16" font-family="Arial, sans-serif" font-weight="700" fill="#243247">Step 1 输入模板</text>
+  <text x="128" y="332" font-size="13" font-family="Arial, sans-serif" fill="#6F7D95">研究领域 / 背景 / 已有基础</text>
+  <rect x="128" y="352" width="256" height="28" rx="8" fill="#F7F9FD" stroke="#D8E1EE"/>
+  <rect x="128" y="390" width="256" height="22" rx="8" fill="#EEF3FD"/>
+  <text x="128" y="454" font-size="13" font-family="Arial, sans-serif" fill="#516BFF">已完成 78%</text>
+
+  <rect x="104" y="450" width="304" height="160" rx="18" fill="#FFFFFF" stroke="#D9E2F0"/>
+  <text x="128" y="482" font-size="16" font-family="Arial, sans-serif" font-weight="700" fill="#243247">Step 2 多 Agent 讨论</text>
+  <text x="128" y="512" font-size="13" font-family="Arial, sans-serif" fill="#6F7D95">查看正在发生的对话，但保持次级优先级</text>
+  <rect x="128" y="536" width="256" height="12" rx="6" fill="#EEF3FD"/>
+  <rect x="128" y="560" width="188" height="12" rx="6" fill="#EEF3FD"/>
+  <rect x="128" y="584" width="222" height="12" rx="6" fill="#EEF3FD"/>
+
+  <rect x="104" y="630" width="304" height="160" rx="18" fill="#FFFFFF" stroke="#D9E2F0"/>
+  <text x="128" y="662" font-size="16" font-family="Arial, sans-serif" font-weight="700" fill="#243247">Step 3 报告导出</text>
+  <text x="128" y="692" font-size="13" font-family="Arial, sans-serif" fill="#6F7D95">完成后切换为主视图，适合沉浸阅读</text>
+  <rect x="128" y="718" width="120" height="36" rx="18" fill="#EEF3FD"/>
+  <rect x="262" y="718" width="120" height="36" rx="18" fill="#EEF3FD"/>
+
+  <rect x="472" y="156" width="1058" height="748" rx="22" fill="#FFFFFF"/>
+  <text x="512" y="212" font-size="34" font-family="Arial, sans-serif" font-weight="700" fill="#142133">Step 1 · 填写研究输入</text>
+  <text x="512" y="246" font-size="16" font-family="Arial, sans-serif" fill="#6A7892">让用户每次只专注一件事，页面把“下一步”说清楚</text>
+
+  <rect x="512" y="286" width="470" height="210" rx="20" fill="#F8FAFE" stroke="#E0E8F4"/>
+  <text x="540" y="326" font-size="17" font-family="Arial, sans-serif" font-weight="700" fill="#233146">必要信息</text>
+  <rect x="540" y="352" width="414" height="34" rx="10" fill="#FFFFFF" stroke="#D7E0ED"/>
+  <rect x="540" y="400" width="414" height="72" rx="10" fill="#FFFFFF" stroke="#D7E0ED"/>
+  <text x="556" y="374" font-size="13" font-family="Arial, sans-serif" fill="#748299">研究领域</text>
+  <text x="556" y="428" font-size="13" font-family="Arial, sans-serif" fill="#748299">背景与已有研究基础</text>
+
+  <rect x="1002" y="286" width="488" height="210" rx="20" fill="#F8FAFE" stroke="#E0E8F4"/>
+  <text x="1030" y="326" font-size="17" font-family="Arial, sans-serif" font-weight="700" fill="#233146">辅助条件</text>
+  <rect x="1030" y="352" width="432" height="54" rx="10" fill="#FFFFFF" stroke="#D7E0ED"/>
+  <rect x="1030" y="420" width="208" height="52" rx="10" fill="#FFFFFF" stroke="#D7E0ED"/>
+  <rect x="1254" y="420" width="208" height="52" rx="10" fill="#FFFFFF" stroke="#D7E0ED"/>
+  <text x="1046" y="380" font-size="13" font-family="Arial, sans-serif" fill="#748299">平台 / 约束 / 目标产出 / 偏好方向</text>
+
+  <rect x="512" y="526" width="978" height="168" rx="20" fill="#F8FAFE" stroke="#E0E8F4"/>
+  <text x="540" y="566" font-size="17" font-family="Arial, sans-serif" font-weight="700" fill="#233146">上传文档与运行参数</text>
+  <rect x="540" y="592" width="388" height="62" rx="12" fill="#FFFFFF" stroke="#D7E0ED"/>
+  <rect x="948" y="592" width="170" height="62" rx="12" fill="#FFFFFF" stroke="#D7E0ED"/>
+  <rect x="1138" y="592" width="160" height="62" rx="12" fill="#FFFFFF" stroke="#D7E0ED"/>
+  <rect x="1318" y="592" width="144" height="62" rx="12" fill="#FFFFFF" stroke="#D7E0ED"/>
+  <text x="560" y="628" font-size="13" font-family="Arial, sans-serif" fill="#748299">拖拽上传 / 注释</text>
+  <text x="968" y="628" font-size="13" font-family="Arial, sans-serif" fill="#748299">轮次 1-5</text>
+  <text x="1158" y="628" font-size="13" font-family="Arial, sans-serif" fill="#748299">并行首轮</text>
+  <text x="1338" y="628" font-size="13" font-family="Arial, sans-serif" fill="#748299">模型分配</text>
+
+  <rect x="512" y="734" width="250" height="58" rx="16" fill="#516BFF"/>
+  <text x="637" y="770" text-anchor="middle" font-size="20" font-family="Arial, sans-serif" font-weight="700" fill="#FFFFFF">开始分析</text>
+  <text x="794" y="770" font-size="14" font-family="Arial, sans-serif" fill="#6A7892">下一屏自动进入讨论态，顶部 Stepper 推进</text>
+
+  <rect x="1058" y="726" width="432" height="92" rx="18" fill="#EEF3FD"/>
+  <text x="1088" y="756" font-size="15" font-family="Arial, sans-serif" font-weight="700" fill="#334155">设计原则</text>
+  <text x="1088" y="784" font-size="13" font-family="Arial, sans-serif" fill="#617089">单阶段聚焦 · 新手友好 · 适合做引导式产品</text>
+
+  <text x="36" y="976" font-size="13" font-family="Arial, sans-serif" fill="#6C7A92">Proposal B · Workflow Studio · 通过分阶段主视图减少“页面过满”的感觉</text>
+</svg>

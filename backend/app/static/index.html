@@ -1,0 +1,2573 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>K-Storm</title>
+    <style>
+      :root {
+        --bg: #1f2a33;
+        --bg-soft: #25323d;
+        --panel: #f3f7f4;
+        --panel-strong: #ffffff;
+        --panel-muted: #e8efea;
+        --ink: #1a2a28;
+        --ink-soft: #51665f;
+        --muted: #71837e;
+        --border: #ccd9d2;
+        --border-strong: #9eb7ad;
+        --accent: #2f9d89;
+        --accent-strong: #176f61;
+        --accent-soft: #d9f0ea;
+        --warning: #b87919;
+        --warning-soft: #fff2d8;
+        --danger: #b45c73;
+        --danger-soft: #fde7ed;
+        --shadow: 0 18px 42px rgba(27, 42, 50, .18);
+        --scroll-track: #dfe9e4;
+        --scroll-thumb: #93aaa1;
+      }
+      * { box-sizing: border-box; }
+      *::-webkit-scrollbar { height: 10px; width: 10px; }
+      *::-webkit-scrollbar-track { background: var(--scroll-track); border-radius: 999px; }
+      *::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border: 2px solid var(--scroll-track); border-radius: 999px; }
+      *::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at 16% 6%, rgba(47, 157, 137, .14), transparent 30%),
+          linear-gradient(135deg, #edf3ef 0%, #dfe9e4 52%, #d5e0dc 100%);
+        color: var(--ink);
+        display: flex;
+        flex-direction: column;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        height: 100vh;
+        overflow: hidden;
+      }
+      button, input, select, textarea { font: inherit; }
+      button { cursor: pointer; }
+      button:disabled { cursor: not-allowed; opacity: .55; }
+      h1, h2, h3, p { margin: 0; }
+      h1 { font-size: 28px; }
+      h2 { font-size: 20px; }
+      h3 { font-size: 15px; }
+      p, small { color: var(--muted); }
+      .topbar {
+        align-items: center;
+        background: rgba(246, 250, 247, .92);
+        border-bottom: 1px solid rgba(190, 207, 199, .8);
+        backdrop-filter: blur(16px);
+        display: flex;
+        justify-content: space-between;
+        min-height: 78px;
+        padding: 0 34px;
+        flex: 0 0 auto;
+        z-index: 8;
+      }
+      .brand { align-items: center; display: flex; gap: 14px; }
+      .brand p { color: var(--muted); display: block; font-size: 13px; margin-top: 3px; }
+      .mark {
+        align-items: center;
+        background: linear-gradient(145deg, var(--accent), var(--accent-strong));
+        border-radius: 12px;
+        color: #f7fffb;
+        display: flex;
+        font-weight: 800;
+        font-size: 22px;
+        height: 42px;
+        justify-content: center;
+        width: 42px;
+      }
+      .actions { align-items: center; display: flex; gap: 10px; }
+      .actions.multi-actions { flex-wrap: wrap; justify-content: flex-end; }
+      .status {
+        background: var(--accent-soft);
+        border: 1px solid rgba(47, 157, 137, .35);
+        border-radius: 999px;
+        color: var(--accent-strong);
+        font-size: 13px;
+        font-weight: 800;
+        padding: 10px 18px;
+      }
+      .workspace {
+        display: grid;
+        flex: 1 1 auto;
+        gap: 24px;
+        grid-template-columns: 360px minmax(0, 1fr) 344px;
+        min-height: 0;
+        overflow: hidden;
+        padding: 26px 28px;
+      }
+      .panel {
+        background: rgba(246, 250, 247, .9);
+        border: 1px solid rgba(190, 207, 199, .85);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        padding: 24px;
+      }
+      .template {
+        align-self: start;
+        height: 100%;
+        max-height: none;
+        overflow: auto;
+        position: relative;
+      }
+      .template::before {
+        background: radial-gradient(circle at top right, rgba(47,157,137,.2), transparent 36%);
+        content: "";
+        inset: 0;
+        pointer-events: none;
+        position: absolute;
+      }
+      .template > * { position: relative; }
+      .completion-ring {
+        background: conic-gradient(var(--accent) var(--completion, 0%), #d7e4de 0);
+        border-radius: 50%;
+        display: grid;
+        height: 62px;
+        place-items: center;
+        position: absolute;
+        right: 24px;
+        top: 24px;
+        width: 62px;
+      }
+      .completion-ring span {
+        align-items: center;
+        background: #f9fcfa;
+        border-radius: 50%;
+        color: var(--accent-strong);
+        display: flex;
+        font-size: 13px;
+        font-weight: 800;
+        height: 48px;
+        justify-content: center;
+        width: 48px;
+      }
+      .heading {
+        align-items: center;
+        display: flex;
+        gap: 16px;
+        justify-content: space-between;
+      }
+      .form { display: grid; gap: 14px; margin-top: 20px; }
+      label { display: grid; gap: 7px; }
+      .form label, .documents, .template > label.checkbox-row, .template > label:not(.checkbox-row) {
+        background: rgba(255, 255, 255, .72);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 14px;
+      }
+      .template > .heading { padding-right: 76px; }
+      label span { color: var(--ink-soft); font-size: 13px; font-weight: 750; }
+      label b { color: var(--warning); margin-left: 3px; }
+      input, select, textarea {
+        background: #fbfdfb;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--ink);
+        line-height: 1.45;
+        min-height: 42px;
+        outline: none;
+        padding: 9px 11px;
+        width: 100%;
+      }
+      textarea { min-height: 48px; resize: vertical; }
+      input:focus, select:focus, textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(47,157,137,.16);
+      }
+      .primary, .ghost, .danger {
+        align-items: center;
+        border-radius: 8px;
+        display: inline-flex;
+        font-weight: 750;
+        gap: 8px;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 14px;
+      }
+      .primary { background: var(--accent); border: 1px solid var(--accent); color: #f7fffb; box-shadow: 0 12px 24px rgba(47,157,137,.18); }
+      .ghost { background: rgba(255,255,255,.64); border: 1px solid var(--border-strong); color: var(--ink); }
+      .danger { background: var(--danger-soft); border: 1px solid rgba(180,92,115,.38); color: #93435b; }
+      .template .primary { border-radius: 15px; font-size: 18px; font-weight: 900; margin-top: 18px; min-height: 54px; width: 100%; }
+      .documents { border-top: 1px solid var(--border); display: grid; gap: 10px; margin-top: 16px; padding-top: 16px; }
+      .document-item { background: rgba(255,255,255,.72); border: 1px solid var(--border); border-radius: 14px; display: grid; gap: 10px; padding: 12px; }
+      .document-row { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr) 150px auto; }
+      .document-name { font-weight: 750; overflow-wrap: anywhere; }
+      .results, .intelligence-rail { display: grid; gap: 18px; height: 100%; min-width: 0; overflow: auto; padding-right: 4px; }
+      .intelligence-rail { align-content: start; }
+      .stage-panel {
+        display: flex;
+        flex-direction: column;
+        height: clamp(720px, 74vh, 940px);
+        min-height: 0;
+        overflow: hidden;
+      }
+      .metrics { display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); margin-top: 18px; }
+      .metric, .brief, .agent, .summary {
+        background: rgba(255, 255, 255, .76);
+        border: 1px solid var(--border);
+        border-radius: 15px;
+        padding: 13px;
+      }
+      .metric small { color: var(--muted); font-size: 12px; }
+      .metric strong { color: var(--ink); display: block; font-size: 22px; margin-top: 8px; overflow-wrap: anywhere; }
+      .briefs { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); margin-top: 16px; }
+      .brief ul { color: var(--ink-soft); line-height: 1.55; margin: 8px 0 0; padding-left: 18px; }
+      .brief p { color: var(--ink-soft); line-height: 1.6; margin-top: 8px; white-space: pre-wrap; }
+      .briefing-card { display: grid; gap: 10px; }
+      .briefing-head { align-items: center; display: flex; justify-content: space-between; }
+      .briefing-body { max-height: 240px; overflow: auto; padding-right: 4px; }
+      .briefing-body.expanded { max-height: 520px; }
+      .content-head { align-items: center; display: flex; gap: 10px; justify-content: space-between; }
+      .copy-mini { min-height: 30px; padding: 0 10px; }
+      .export-select {
+        background: #fbfdfb;
+        border: 1px solid var(--border-strong);
+        border-radius: 10px;
+        color: var(--ink);
+        font-weight: 700;
+        min-height: 36px;
+        padding: 0 10px;
+        width: auto;
+      }
+      #debate {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+      }
+      #debate:not(.empty) {
+        display: flex;
+        flex-direction: column;
+      }
+      .round { display: flex; flex: 1 1 auto; flex-direction: column; margin-top: 16px; min-height: 0; }
+      .round-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+      .round-tab { min-height: 34px; padding: 0 12px; }
+      .round-tab.active { background: var(--accent); border-color: var(--accent); color: #f7fffb; }
+      .round-title { color: var(--ink-soft); font-weight: 800; margin-bottom: 10px; }
+      .messages {
+        align-content: start;
+        display: grid;
+        flex: 1 1 auto;
+        gap: 18px;
+        grid-template-columns: repeat(2, minmax(360px, 1fr));
+        min-height: 0;
+        overflow: auto;
+        padding-right: 4px;
+      }
+      .messages .agent:only-child { grid-column: 1 / -1; }
+      @supports selector(.messages:has(.agent:nth-child(2):last-child)) {
+        .messages:has(.agent:nth-child(2):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .messages:has(.agent:nth-child(3):last-child) { grid-template-columns: repeat(2, minmax(360px, 1fr)); }
+      }
+      .agent {
+        border-top: 8px solid var(--accent);
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        min-height: 390px;
+        overflow: hidden;
+        position: relative;
+      }
+      .agent.novelty { border-top-color: #2f9d89; }
+      .agent.mechanism { border-top-color: #6f7ccf; }
+      .agent.feasibility { border-top-color: #d69a2d; }
+      .agent.reviewer { border-top-color: #c56b8a; }
+      .agent.moderator { border-top-color: #73a96d; }
+      .agent header { display: flex; flex-wrap: wrap; gap: 6px 10px; justify-content: space-between; }
+      .agent header strong { color: var(--ink); }
+      .agent-body { color: var(--ink-soft); font-size: 14px; line-height: 1.65; margin-top: 10px; min-height: 0; overflow: auto; padding-right: 4px; }
+      .summary {
+        background: rgba(255,255,255,.76);
+        border-left: 4px solid var(--accent);
+        color: var(--ink-soft);
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        line-height: 1.65;
+        min-height: 280px;
+      }
+      .summary-body {
+        font-size: 14px;
+        margin-top: 10px;
+        max-height: 360px;
+        overflow: auto;
+        padding-right: 4px;
+      }
+      .ir-v15 { display: grid; gap: 12px; margin-bottom: 14px; }
+      .ir-decision {
+        background: var(--accent-soft);
+        border: 1px solid rgba(47,157,137,.32);
+        border-radius: 12px;
+        color: var(--accent-strong);
+        font-weight: 700;
+        line-height: 1.6;
+        padding: 12px;
+      }
+      .candidate-grid { display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr); }
+      .candidate-card {
+        background: rgba(255,255,255,.72);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--accent);
+        border-radius: 12px;
+        display: grid;
+        gap: 8px;
+        min-height: 180px;
+        padding: 12px;
+      }
+      .candidate-card strong { color: var(--ink); }
+      .candidate-card small, .candidate-meta { color: var(--muted); line-height: 1.5; }
+      .candidate-meta span {
+        background: var(--panel-muted);
+        border-radius: 999px;
+        display: inline-block;
+        margin: 0 4px 4px 0;
+        padding: 2px 8px;
+      }
+      .markdown-rendered { color: var(--ink-soft); line-height: 1.65; }
+      .markdown-rendered h1, .markdown-rendered h2, .markdown-rendered h3 { color: var(--ink); margin: 14px 0 8px; }
+      .markdown-rendered h1 { font-size: 20px; }
+      .markdown-rendered h2 { font-size: 17px; }
+      .markdown-rendered h3 { font-size: 15px; }
+      .markdown-rendered p { color: var(--ink-soft); margin: 8px 0; }
+      .markdown-rendered ul, .markdown-rendered ol { margin: 8px 0; padding-left: 22px; }
+      .markdown-rendered li { margin: 4px 0; }
+      .markdown-rendered blockquote { border-left: 3px solid var(--border-strong); color: var(--muted); margin: 8px 0; padding-left: 10px; }
+      .markdown-rendered hr { border: 0; border-top: 1px solid var(--border); margin: 12px 0; }
+      .markdown-rendered code { background: #eaf2ee; border-radius: 5px; color: var(--accent-strong); padding: 1px 5px; }
+      .markdown-rendered pre {
+        background: #edf5f1;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--ink-soft);
+        margin: 10px 0;
+        max-height: 320px;
+      }
+      .markdown-rendered pre code { background: transparent; padding: 0; }
+      .markdown-table-wrap { overflow: auto; }
+      .markdown-rendered table { border-collapse: collapse; font-size: 13px; margin: 10px 0; min-width: 560px; width: 100%; }
+      .markdown-rendered th, .markdown-rendered td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
+      .markdown-rendered th { background: #e8f0ec; color: var(--ink); font-weight: 750; }
+      .markdown-rendered td { background: rgba(255,255,255,.62); }
+      .report-box {
+        background: rgba(255,255,255,.76);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--accent);
+        border-radius: 14px;
+        max-height: 480px;
+        overflow: auto;
+        padding: 16px;
+      }
+      pre {
+        background: #eef5f1;
+        border-radius: 8px;
+        color: var(--ink-soft);
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 13px;
+        line-height: 1.68;
+        margin: 16px 0 0;
+        max-height: 720px;
+        overflow: auto;
+        padding: 18px;
+        white-space: pre-wrap;
+      }
+      .history { display: grid; gap: 10px; margin-top: 16px; }
+      .history-item {
+        align-items: center;
+        background: rgba(255,255,255,.72);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--ink);
+        display: grid;
+        gap: 10px;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        min-height: 52px;
+        padding: 10px 12px;
+        text-align: left;
+      }
+      .history-actions-inline { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+      .history-actions-inline .ghost { white-space: nowrap; }
+      .intelligence-rail .history-item { align-items: start; grid-template-columns: auto minmax(0, 1fr); }
+      .intelligence-rail .history-actions-inline { grid-column: 1 / -1; justify-content: flex-start; }
+
+      .history-item input { min-height: auto; width: auto; }
+      .history-open { background: transparent; border: 0; color: var(--ink); font-weight: 750; padding: 0; text-align: left; }
+      .history-candidates {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.45;
+        margin-top: 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .history-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; }
+      .history-location { color: var(--muted); font-size: 13px; margin-top: 10px; overflow-wrap: anywhere; }
+      .empty { align-items: center; color: var(--muted); display: flex; justify-content: center; min-height: 96px; text-align: center; }
+      .model-picker { display: grid; gap: 8px; margin-top: 10px; position: relative; }
+      .model-picker-row { display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr) auto; }
+      .model-candidate-list {
+        background: #f8fbf8;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: 0 12px 34px rgba(22, 39, 32, .14);
+        display: none;
+        max-height: 300px;
+        overflow: auto;
+        padding: 8px;
+      }
+      .model-candidate-list.open { display: grid; gap: 4px; }
+      .model-candidate-head { align-items: center; color: var(--muted); display: flex; font-size: 12px; justify-content: space-between; padding: 2px 4px 6px; }
+      .model-candidate-head button { background: transparent; border: 0; color: var(--accent); font-weight: 750; padding: 0; }
+      .model-candidate {
+        align-items: center;
+        background: transparent;
+        border: 0;
+        border-radius: 6px;
+        color: var(--ink);
+        display: grid;
+        gap: 10px;
+        grid-template-columns: minmax(0, 1fr) auto;
+        min-height: 36px;
+        padding: 0 10px;
+        text-align: left;
+      }
+      .model-candidate:hover { background: var(--accent-soft); }
+      .model-candidate small { color: var(--muted); }
+      .progress-list { display: grid; gap: 8px; margin-top: 16px; }
+      .progress-toolbar { align-items: center; display: flex; justify-content: space-between; margin-bottom: 4px; }
+      .progress-toolbar small { color: var(--muted); }
+      .progress-toggle { min-height: 32px; padding: 0 10px; }
+      .progress-step { align-items: center; color: var(--muted); display: grid; gap: 10px; grid-template-columns: 14px minmax(0, 1fr) 128px; }
+      .progress-dot { background: #b5c5bd; border-radius: 50%; height: 10px; width: 10px; }
+      .progress-time { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; justify-self: end; text-align: right; white-space: nowrap; width: 128px; }
+      .progress-overall { border-top: 1px solid var(--border); margin-top: 6px; padding-top: 10px; }
+      .progress-step.done { color: var(--accent-strong); }
+      .progress-step.done .progress-dot { background: var(--accent); }
+      .progress-step.active { color: var(--warning); font-weight: 750; }
+      .progress-step.active .progress-dot { animation: pulse 1s infinite; background: var(--warning); }
+      .error {
+        align-items: center;
+        background: var(--danger-soft);
+        border-bottom: 1px solid rgba(180,92,115,.32);
+        color: #93435b;
+        display: none;
+        flex: 0 0 auto;
+        gap: 12px;
+        justify-content: space-between;
+        padding: 12px 28px;
+        z-index: 7;
+      }
+      .error button {
+        background: transparent;
+        border: 0;
+        color: #93435b;
+        font-size: 20px;
+        line-height: 1;
+        min-height: 24px;
+        padding: 0 4px;
+      }
+      .checkbox-row {
+        align-items: center;
+        display: flex;
+        gap: 10px;
+      }
+      .checkbox-row input {
+        min-height: auto;
+        width: auto;
+      }
+      .checkbox-row span {
+        color: var(--ink-soft);
+        font-size: 13px;
+        font-weight: 750;
+      }
+      .modal {
+        background: rgba(38, 51, 60, .42);
+        display: none;
+        inset: 0;
+        padding: 28px;
+        position: fixed;
+        z-index: 10;
+      }
+      .modal.open { display: block; }
+      .settings {
+        background: #f4f8f5;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: 0 18px 50px rgba(22, 39, 32, .16);
+        display: grid;
+        grid-template-columns: 310px minmax(0, 1fr);
+        margin: 0 auto;
+        height: calc(100vh - 56px);
+        max-height: calc(100vh - 56px);
+        max-width: 1100px;
+        overflow: hidden;
+      }
+      .provider-list {
+        border-right: 1px solid var(--border);
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        min-height: 0;
+        overflow: hidden;
+        padding: 18px;
+      }
+      .provider-items { display: grid; gap: 8px; margin-top: 16px; overflow: auto; padding-right: 4px; }
+      .provider-group {
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        margin: 14px 0 4px;
+      }
+      .provider-item {
+        align-items: center;
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        color: var(--ink);
+        display: flex;
+        gap: 8px;
+        justify-content: space-between;
+        min-height: 42px;
+        padding: 0 10px;
+        text-align: left;
+      }
+      .provider-item.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-strong); }
+      .provider-dot { background: var(--accent); border-radius: 50%; height: 10px; width: 10px; }
+      .settings-main { align-content: start; display: grid; gap: 18px; min-height: 0; overflow: auto; padding: 26px 32px; }
+      .settings-row { display: grid; gap: 12px; grid-template-columns: 130px minmax(0, 1fr); align-items: center; }
+      .key-row { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr) auto; }
+      .model-list { border-top: 1px solid var(--border); display: grid; gap: 10px; padding-top: 16px; }
+      .model-item, .agent-row {
+        align-items: center;
+        display: grid;
+        gap: 12px;
+        grid-template-columns: minmax(120px, 1.2fr) minmax(120px, 1fr) auto;
+      }
+      .agent-row {
+        align-items: start;
+        background: rgba(255,255,255,.72);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        grid-template-columns: 190px minmax(0, 1fr);
+        padding: 14px;
+      }
+      .agent-row strong { display: block; margin-top: 8px; }
+      .agent-control { display: grid; gap: 7px; }
+      .agent-meta { color: var(--muted); font-size: 12px; }
+      .agent-rec { color: var(--muted); font-size: 12px; line-height: 1.45; }
+      .agent-grid { border-top: 1px solid var(--border); display: grid; gap: 12px; padding-top: 16px; }
+      .settings-footer { align-items: center; display: flex; gap: 10px; justify-content: flex-end; }
+      @media (max-width: 1280px) {
+        .workspace { grid-template-columns: 340px minmax(0, 1fr); }
+        .intelligence-rail { grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); height: auto; overflow: visible; }
+      }
+      @media (max-width: 1080px) {
+        .workspace { grid-template-columns: 1fr; overflow: auto; }
+        .template { max-height: none; position: static; }
+        .settings { grid-template-columns: 1fr; }
+        .provider-list { border-right: 0; border-bottom: 1px solid var(--border); min-height: auto; }
+        .messages, .candidate-grid, .intelligence-rail { grid-template-columns: 1fr 1fr; }
+      }
+      @media (max-width: 720px) {
+        .topbar, .workspace, .heading, .actions, .settings-row, .model-item, .agent-row {
+          align-items: stretch;
+          display: flex;
+          flex-direction: column;
+        }
+        .history-item { align-items: flex-start; grid-template-columns: auto minmax(0, 1fr); }
+        .history-actions-inline { grid-column: 2; justify-content: flex-start; }
+        .metrics, .briefs, .messages, .candidate-grid, .intelligence-rail { grid-template-columns: 1fr; }
+        .modal { padding: 10px; }
+        .document-row { grid-template-columns: 1fr; }
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: .35; transform: scale(.9); }
+        50% { opacity: 1; transform: scale(1.15); }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark">KS</div>
+        <div>
+          <h1>K-Storm</h1>
+          <p>Research Console · Agent Observatory</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="ghost" id="open-settings">模型设置</button>
+        <div class="status" id="status">READY</div>
+      </div>
+    </header>
+    <div class="error" id="error"><span id="error-text"></span><button id="close-error" aria-label="关闭提示">×</button></div>
+
+    <main class="workspace">
+      <section class="panel template">
+        <div class="completion-ring" id="completion-ring"><span id="completion-percent">0%</span></div>
+        <div class="heading">
+          <div>
+            <h2>研究输入</h2>
+            <p>稳定输入台 · 模板 / 文档 / 参数</p>
+          </div>
+        </div>
+          <div class="form" id="form"></div>
+          <div class="documents">
+            <div>
+              <h3>上传文档</h3>
+              <p>支持文本类 design / experiment-data 文档，可添加注释。</p>
+            </div>
+            <input id="document-upload" type="file" multiple />
+            <div id="document-list"></div>
+          </div>
+          <label style="margin-top:14px">
+            <span>讨论轮次</span>
+            <input id="debate-rounds" type="number" min="1" max="5" value="3" />
+          </label>
+          <label class="checkbox-row" style="margin-top:12px">
+            <input id="parallel-first-round" type="checkbox" />
+            <span>第 1 轮并行独立发言</span>
+          </label>
+          <button class="primary" id="start">开始分析</button>
+      </section>
+      <section class="results">
+        <section class="panel">
+          <div class="heading">
+            <div>
+              <h2>运行概览</h2>
+              <p id="run-id">等待启动一次 KS 工作流</p>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+              <button class="danger" id="stop-run" disabled>停止分析</button>
+              <button class="primary" id="resume-run" disabled>继续分析</button>
+              <button class="ghost" id="rerun" disabled>从头重跑</button>
+            </div>
+          </div>
+          <div class="metrics">
+            <div class="metric"><small>讨论轮次</small><strong id="metric-rounds">-</strong></div>
+            <div class="metric"><small>Agent 发言</small><strong id="metric-messages">-</strong></div>
+            <div class="metric"><small>状态</small><strong id="metric-status">READY</strong></div>
+          </div>
+          <div id="progress" class="progress-list"></div>
+          <div id="briefs" class="empty">提交模板后，这里会显示入口 Agent 生成的结构化 briefing。</div>
+        </section>
+        <section class="panel stage-panel">
+          <div class="heading">
+            <div><h2>多 Agent 讨论舞台</h2><p>当前轮次聚焦 · Agent 信号柱</p></div>
+            <div class="actions multi-actions">
+              <button class="ghost" id="download-debate-pdf" disabled>讨论 PDF</button>
+            </div>
+          </div>
+          <div id="debate" class="empty">还没有讨论记录。</div>
+        </section>
+      </section>
+      <aside class="intelligence-rail">
+        <section class="panel rail-panel">
+          <div class="heading">
+            <div><h2>结构化文档</h2><p>IR 中间稿，用于承接各 Agent 摘要并生成最终报告。</p></div>
+            <div class="actions multi-actions">
+              <select id="summary-format" class="export-select">
+                <option value="md">IR MD</option>
+                <option value="pdf">IR PDF</option>
+              </select>
+              <button class="ghost" id="download-summary" disabled>导出 IR</button>
+              <select id="bundle-format" class="export-select">
+                <option value="md">打包 MD</option>
+                <option value="pdf">打包 PDF</option>
+              </select>
+              <button class="ghost" id="download-bundle" disabled>打包导出</button>
+              <button class="ghost" id="download-json" disabled>Run JSON</button>
+            </div>
+          </div>
+          <div id="summary"></div>
+          <div id="summary-empty" class="empty">结构化 IR 生成后会显示在这里。</div>
+        </section>
+        <section class="panel rail-panel">
+          <div class="heading">
+            <div><h2>最终报告</h2><p>Markdown 格式，可直接复制到开题或组会讨论材料。</p></div>
+            <div class="actions multi-actions">
+              <select id="report-format" class="export-select">
+                <option value="md">报告 MD</option>
+                <option value="pdf">报告 PDF</option>
+              </select>
+              <button class="ghost" id="download" disabled>报告</button>
+              <button class="ghost" id="copy" disabled>复制</button>
+            </div>
+          </div>
+          <div id="report" class="report-box markdown-rendered" style="display:none"></div>
+          <div id="report-empty" class="empty">完成一次分析后会生成最终报告。</div>
+        </section>
+        <section class="panel rail-panel">
+          <div class="heading">
+            <div><h2>历史记录</h2><p>本地 SQLite 保存最近运行。</p></div>
+            <button class="ghost" id="history-location-button">位置</button>
+          </div>
+          <div class="history-actions">
+            <button class="danger" id="delete-history">删除所选</button>
+          </div>
+          <div class="history-location" id="history-location"></div>
+          <div id="history" class="history"></div>
+        </section>
+      </aside>
+    </main>
+
+    <section class="modal" id="settings-modal" aria-label="模型设置">
+      <div class="settings">
+        <aside class="provider-list">
+          <div>
+            <div class="heading">
+              <div><h2>供应商</h2><p>API Key 仅保存在本机浏览器。</p></div>
+            </div>
+            <div class="provider-items" id="provider-items"></div>
+          </div>
+          <button class="ghost" id="add-provider">添加供应商</button>
+        </aside>
+        <section class="settings-main">
+          <div class="heading">
+            <div>
+              <h2 id="provider-title">模型供应商</h2>
+              <p>支持 OpenAI Compatible、Anthropic Messages、OpenAI Responses。</p>
+            </div>
+            <button class="danger" id="delete-provider">删除供应商</button>
+          </div>
+          <div class="settings-row"><label for="provider-name"><span>名称</span></label><input id="provider-name" /></div>
+          <div class="settings-row">
+            <label for="provider-key"><span>API Key</span></label>
+            <div class="key-row"><input id="provider-key" type="password" /><button class="ghost" id="toggle-key">显示</button></div>
+          </div>
+          <div class="settings-row"><label for="provider-base"><span>Base URL</span></label><input id="provider-base" placeholder="https://api.deepseek.com/v1" /></div>
+          <div class="settings-row">
+            <label for="provider-type"><span>API 类型</span></label>
+            <select id="provider-type"></select>
+          </div>
+          <div class="settings-row">
+            <label for="provider-insecure-tls"><span>证书校验</span></label>
+            <label class="checkbox-row">
+              <input id="provider-insecure-tls" type="checkbox" />
+              <span>允许不安全证书</span>
+            </label>
+          </div>
+          <div class="heading">
+            <div><h3>已添加的模型 <small id="model-count"></small></h3></div>
+            <button class="ghost" id="discover-models">读取模型</button>
+          </div>
+          <div class="model-list" id="model-list"></div>
+          <div class="model-picker">
+            <div class="model-picker-row">
+              <input id="model-search" placeholder="搜索或输入模型 ID" />
+              <button class="ghost" id="add-model">添加模型</button>
+            </div>
+            <div id="model-candidates" class="model-candidate-list"></div>
+          </div>
+          <div class="heading">
+            <div><h3>Agent 模型位置</h3><p>每个位置可独立选择模型，留空时使用本地 mock。</p></div>
+            <button class="ghost" id="recommend-agent-config">推荐配置</button>
+          </div>
+          <div class="agent-grid" id="agent-grid"></div>
+          <div class="settings-footer">
+            <button class="ghost" id="close-settings">关闭</button>
+            <button class="primary" id="save-settings">保存设置</button>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <script>
+      const fields = [
+        ["field", "研究领域", "如：肿瘤免疫、单细胞测序、材料催化", true],
+        ["background", "实验大背景", "当前领域问题、疾病背景、技术背景", true],
+        ["existing_basis", "已有研究基础", "已有数据、实验结果、模型系统、样本资源", true],
+        ["extension_points", "初步想法", "你已经想到的延伸点", false],
+        ["core_question", "核心科学问题", "不清楚可留空，KS 会协助提炼", false],
+        ["platforms", "可用技术平台", "RNA-seq、动物模型、细胞实验、临床队列等", false],
+        ["constraints", "资源限制", "时间、经费、样本量、仪器、合作条件", false],
+        ["target_output", "目标产出", "开题报告、组会讨论、毕业课题、预实验等", false],
+        ["preferred_direction", "偏好方向", "机制研究、方法开发、转化应用、交叉学科等", false],
+        ["avoid_direction", "避免方向", "明确不想做的方向", false]
+      ];
+      const agentSlots = [
+        ["intake", "入口 Agent", "Intake Agent", "结构化 briefing"],
+        ["novelty", "创新性 Agent", "Novelty Agent", "讨论组"],
+        ["mechanism", "机制深挖 Agent", "Mechanism Agent", "讨论组"],
+        ["feasibility", "可行性 Agent", "Feasibility Agent", "讨论组"],
+        ["reviewer", "审稿人 Agent", "Reviewer Agent", "讨论组"],
+        ["moderator", "Moderator", "Moderator", "冲突与遗漏"],
+        ["group_summarizer", "结构化 IR", "Group Summarizer", "总结"],
+        ["output", "出口 Agent", "Output Agent", "最终报告"]
+      ];
+      const agentRecommendations = {
+        intake: "推荐：长上下文、稳健理解模型，例如 GLM-5.1 / Kimi 长上下文 / DeepSeek Pro，用于全文消化模板和文档。",
+        novelty: "推荐：创造性强、响应较快的模型，例如 DeepSeek Flash / Qwen Plus，用于提出差异化方向。",
+        mechanism: "推荐：推理稳定、机制链条表达强的模型，例如 GLM / DeepSeek Pro / Qwen Max。",
+        feasibility: "推荐：成本适中且执行细节可靠的模型，例如 DeepSeek Flash / Qwen Plus，用于压实实验路线。",
+        reviewer: "推荐：批判性和长文本能力强的模型，例如 DeepSeek Pro / GLM-5.1，用于模拟审稿质疑。",
+        moderator: "推荐：总结和对比能力强的中高质量模型，用于提炼第 1 轮冲突点和第 2 轮问题清单。",
+        group_summarizer: "推荐：结构化能力强的模型，用于把多轮讨论压缩成稳定 IR。",
+        output: "推荐：质量最高、中文写作稳定的模型，用于生成最终 Markdown 报告。"
+      };
+      const apiTypes = [
+        ["openai_compatible", "OpenAI Compatible"],
+        ["anthropic_messages", "Anthropic Messages"],
+        ["openai_responses", "OpenAI Responses"]
+      ];
+      const providerGroups = [
+        ["coding_plan", "CODING PLAN"],
+        ["api", "API"]
+      ];
+      const defaultSettings = {
+        version: 6,
+        activeProviderId: "bailian-coding",
+        providers: [
+          {
+            id: "kimi-coding",
+            name: "Kimi Coding Plan",
+            category: "coding_plan",
+            api_key: "",
+            base_url: "https://api.kimi.com/coding/v1",
+            api_type: "openai_compatible",
+            allow_insecure_tls: false,
+            models: []
+          },
+          {
+            id: "bailian-coding",
+            name: "百炼 Coding Plan",
+            category: "coding_plan",
+            api_key: "",
+            base_url: "https://coding.dashscope.aliyuncs.com/v1",
+            api_type: "openai_compatible",
+            allow_insecure_tls: false,
+            models: []
+          },
+          {
+            id: "volcengine-coding",
+            name: "火山引擎 Coding Plan",
+            category: "coding_plan",
+            api_key: "",
+            base_url: "https://ark.cn-beijing.volces.com/api/coding/v3",
+            api_type: "openai_compatible",
+            allow_insecure_tls: false,
+            models: []
+          },
+          {
+            id: "deepseek",
+            name: "DeepSeek",
+            category: "api",
+            api_key: "",
+            base_url: "https://api.deepseek.com/v1",
+            api_type: "openai_compatible",
+            allow_insecure_tls: false,
+            models: []
+          },
+          {
+            id: "dashscope",
+            name: "DashScope (百炼 API)",
+            category: "api",
+            api_key: "",
+            base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+            api_type: "openai_compatible",
+            allow_insecure_tls: false,
+            models: []
+          },
+          {
+            id: "openai",
+            name: "OpenAI",
+            category: "api",
+            api_key: "",
+            base_url: "https://api.openai.com/v1",
+            api_type: "openai_responses",
+            allow_insecure_tls: false,
+            models: []
+          },
+          {
+            id: "openrouter",
+            name: "OpenRouter",
+            category: "api",
+            api_key: "",
+            base_url: "https://openrouter.ai/api/v1",
+            api_type: "openai_compatible",
+            allow_insecure_tls: false,
+            models: []
+          },
+          {
+            id: "ollama",
+            name: "Ollama (Local)",
+            category: "api",
+            api_key: "ollama",
+            base_url: "http://127.0.0.1:11434/v1",
+            api_type: "openai_compatible",
+            allow_insecure_tls: false,
+            models: []
+          },
+          {
+            id: "minimax",
+            name: "MiniMax",
+            category: "api",
+            api_key: "",
+            base_url: "https://api.minimax.io/v1",
+            api_type: "openai_compatible",
+            allow_insecure_tls: false,
+            models: []
+          },
+          {
+            id: "siliconflow",
+            name: "SiliconFlow",
+            category: "api",
+            api_key: "",
+            base_url: "https://api.siliconflow.cn/v1",
+            api_type: "openai_compatible",
+            allow_insecure_tls: false,
+            models: []
+          }
+        ],
+        assignments: {}
+      };
+      const state = {
+        run: null,
+        rounds: 3,
+        pollTimer: null,
+        activeRounds: 3,
+        parallelFirstRound: false,
+        activeDebateRound: 1,
+        progressExpanded: false,
+        briefingExpanded: false,
+        briefingSignature: "",
+        summarySignature: "",
+        structuredIrSignature: "",
+        reportSignature: "",
+        documents: [],
+        discoveredModels: {},
+        modelSearch: "",
+        modelCandidatesCollapsed: {},
+        selectedHistory: new Set(),
+        settings: loadSettings(),
+        template: {
+          field: "肿瘤免疫与单细胞测序",
+          background: "课题组关注免疫治疗耐药，希望从肿瘤微环境细胞互作中找到新的机制切入点。",
+          existing_basis: "已有一批治疗前后样本的单细胞数据，观察到某类髓系细胞亚群在耐药样本中升高，并伴随 T 细胞耗竭评分上升。",
+          extension_points: "",
+          core_question: "",
+          platforms: "单细胞转录组、流式细胞术、细胞共培养、免疫组化、小鼠皮下瘤模型",
+          constraints: "3 个月内完成预实验; 样本量有限; 动物实验名额有限",
+          target_output: "开题报告和组会讨论材料",
+          preferred_direction: "机制研究、转化标志物",
+          avoid_direction: ""
+        }
+      };
+      function inferRunRounds(run) {
+        if (run?.rounds) return run.rounds;
+        const timelineRounds = Math.max(
+          0,
+          ...(run?.timeline || []).map(step => {
+            const match = String(step?.key || "").match(/^debate_r(\d+)_/);
+            return match ? Number.parseInt(match[1], 10) : 0;
+          })
+        );
+        if (timelineRounds > 0) return timelineRounds;
+        return Math.max(1, ...(run?.debate_messages || []).map(message => message.round || 0));
+      }
+      function inferParallelFirstRound(run) {
+        if (typeof run?.parallel_first_round === "boolean") return run.parallel_first_round;
+        return (run?.timeline || []).some(
+          step => step?.key?.startsWith("debate_r1_") && String(step?.label || "").includes("独立发言")
+        );
+      }
+      function baseExportName(run) {
+        const raw = `${run?.template_input?.field || "K-Storm-report"}-${run?.run_id || "run"}`;
+        return raw
+          .replace(/[\\/:*?"<>|]+/g, " ")
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/^-|-$/g, "")
+          .slice(0, 80) || "K-Storm-report";
+      }
+      function exportFilename(run, suffix, extension) {
+        const cleanSuffix = suffix ? `-${suffix}` : "";
+        return `${baseExportName(run)}${cleanSuffix}.${extension}`;
+      }
+      function reportFilename(run, extension = "md") {
+        return exportFilename(run, "report", extension);
+      }
+      function summaryFilename(run, extension = "md") {
+        return exportFilename(run, "structured-ir", extension);
+      }
+      function runJsonFilename(run) {
+        return `${baseExportName(run)}.json`;
+      }
+      function bundleFilename(run) {
+        return `${baseExportName(run)}-bundle.zip`;
+      }
+      function normalizeLoadedDocuments(documents = []) {
+        return documents.map((document, index) => ({
+          ...document,
+          id: document.id || `doc-loaded-${Date.now()}-${index}`,
+          note: document.note || ""
+        }));
+      }
+      function downloadTextFile(text, filename, mimeType) {
+        const blob = new Blob([text], { type: `${mimeType};charset=utf-8` });
+        downloadBlob(blob, filename);
+      }
+      function downloadMarkdown(text, filename) {
+        downloadTextFile(text, filename, "text/markdown");
+      }
+      function downloadJsonFile(value, filename) {
+        downloadTextFile(JSON.stringify(value, null, 2), filename, "application/json");
+      }
+      function downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = filename;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+      }
+      function templateMarkdown(run) {
+        const input = run?.template_input || {};
+        const rows = [
+          ["研究领域", input.field],
+          ["实验大背景", input.background],
+          ["已有研究基础", input.existing_basis],
+          ["初步想法", input.extension_points],
+          ["核心科学问题", input.core_question],
+          ["可用技术平台", input.platforms],
+          ["资源限制", input.constraints],
+          ["目标产出", input.target_output],
+          ["偏好方向", input.preferred_direction],
+          ["避免方向", input.avoid_direction],
+        ];
+        return rows.map(([label, value]) => `## ${label}\n\n${value || "未填写"}`).join("\n\n");
+      }
+      function documentsMarkdown(run) {
+        const documents = run?.documents || [];
+        if (!documents.length) return "";
+        return documents.map((document, index) => [
+          `# 文档 ${index + 1}：${document.name || "未命名文档"}`,
+          `- 类型：${document.doc_type || "other"}`,
+          `- 注释：${document.note || "无"}`,
+          "",
+          document.content || "无可读取文本"
+        ].join("\n")).join("\n\n---\n\n");
+      }
+      function briefMarkdown(run) {
+        const brief = run?.structured_brief;
+        if (!brief) return "";
+        const lines = [
+          "# 入口模型整合 Briefing",
+          "",
+          "## 研究上下文",
+          "",
+          brief.research_context || "",
+          "",
+          "## 已知事实",
+          "",
+          ...(brief.known_facts || []).map(item => `- ${item}`),
+          "",
+          "## 未知问题",
+          "",
+          ...(brief.unknowns || []).map(item => `- ${item}`),
+          "",
+          "## 约束条件",
+          "",
+          ...(brief.constraints || []).map(item => `- ${item}`),
+          "",
+          "## 机会点",
+          "",
+          ...(brief.opportunity_points || []).map(item => `- ${item}`),
+        ];
+        if (brief.intake_synthesis) {
+          lines.push("", "## 入口整合全文", "", brief.intake_synthesis);
+        }
+        return lines.join("\n");
+      }
+      function debateRounds(run) {
+        const byRound = new Map();
+        (run?.debate_messages || []).forEach(message => {
+          if (!byRound.has(message.round)) byRound.set(message.round, []);
+          byRound.get(message.round).push(message);
+        });
+        return Array.from(byRound.entries()).sort((a, b) => a[0] - b[0]);
+      }
+      function debateRoundMarkdown(round, messages) {
+        return [
+          `# 第 ${round} 轮讨论`,
+          "",
+          ...messages.map(message => [
+            `## ${message.agent}`,
+            "",
+            message.model_label ? `- 模型：${message.model_label}` : "",
+            message.title ? `- 阶段：${message.title}` : "",
+            "",
+            message.content || "",
+            message.ir_summary ? ["", "### 给结构化 IR 的要点摘要", "", message.ir_summary].join("\n") : ""
+          ].filter(Boolean).join("\n"))
+        ].join("\n\n---\n\n");
+      }
+      function debateMarkdown(run) {
+        const rounds = debateRounds(run);
+        return rounds.map(([round, messages]) => debateRoundMarkdown(round, messages)).join("\n\n\n");
+      }
+      function structuredIrV15Markdown(run) {
+        const ir = run?.structured_ir;
+        if (!ir) return "";
+        const evidenceById = new Map((ir.evidence_refs || []).map(item => [item.id, item]));
+        const critiqueById = new Map((ir.critique_points || []).map(item => [item.id, item]));
+        const candidates = [...(ir.candidate_directions || [])].sort((a, b) => (a.priority || 99) - (b.priority || 99));
+        return [
+          "# Structured IR V1.5",
+          "",
+          `版本：${ir.version || "1.5"}`,
+          "",
+          "## 决策摘要",
+          "",
+          ir.decision_summary || "",
+          "",
+          "## 关键判断",
+          "",
+          ...(ir.key_claims || []).map(item => `- ${item}`),
+          "",
+          "## 候选方向排序",
+          "",
+          ...candidates.map(candidate => [
+            `### Top ${candidate.priority || "-"} · ${candidate.title || candidate.id}`,
+            "",
+            `- 科学问题：${candidate.research_question || ""}`,
+            `- 排序理由：${candidate.priority_reason || ""}`,
+            `- 创新点：${candidate.novelty || ""}`,
+            `- 可行性：${candidate.feasibility || ""}`,
+            `- 风险：${(candidate.risks || []).join("；") || "未列出"}`,
+            `- 替代路线：${(candidate.alternatives || []).join("；") || "未列出"}`,
+            `- 下一步：${(candidate.next_actions || []).join("；") || "未列出"}`,
+            "",
+            "证据绑定：",
+            ...(candidate.evidence_refs || []).map(id => {
+              const evidence = evidenceById.get(id);
+              return `- ${id}：${evidence?.quote_or_summary || evidence?.supports || "未找到证据详情"}`;
+            }),
+            "",
+            "批判绑定：",
+            ...(candidate.critique_refs || []).map(id => {
+              const critique = critiqueById.get(id);
+              return `- ${id}：${critique?.content || "未找到批判详情"}${critique?.mitigation ? `；缓解：${critique.mitigation}` : ""}`;
+            }),
+          ].join("\n")),
+          "",
+          "## Evidence Refs",
+          "",
+          ...(ir.evidence_refs || []).map(item => `- ${item.id} | ${item.source_type} | ${item.source_title}：${item.quote_or_summary}`),
+          "",
+          "## Critique Points",
+          "",
+          ...(ir.critique_points || []).map(item => `- ${item.id} | ${item.dimension} | ${item.severity}：${item.content}；缓解：${item.mitigation}`),
+        ].join("\n");
+      }
+      function runArchiveMarkdown(run) {
+        const sections = [
+          `# K-Storm 完整分析归档`,
+          "",
+          `- Run ID：${run?.run_id || ""}`,
+          `- 状态：${run?.status || ""}`,
+          `- 导出时间：${new Date().toLocaleString()}`,
+          "",
+          "# 用户模板",
+          "",
+          templateMarkdown(run),
+          "",
+          documentsMarkdown(run) ? "# 上传文档\n\n" + documentsMarkdown(run) : "",
+          briefMarkdown(run),
+          debateMarkdown(run) ? "# Agent 讨论过程\n\n" + debateMarkdown(run) : "",
+          structuredIrV15Markdown(run),
+          run?.group_summary ? "# 结构化 IR\n\n" + run.group_summary : "",
+          run?.final_report ? "# 最终报告\n\n" + run.final_report : ""
+        ].filter(Boolean);
+        return sections.join("\n\n---\n\n");
+      }
+      function bundleEntriesForRun(run) {
+        const entries = [
+          { name: "00-template.md", data: templateMarkdown(run) },
+          { name: "01-intake-briefing.md", data: briefMarkdown(run) },
+          ...debateRounds(run).map(([round, messages]) => ({
+            name: `rounds/round-${String(round).padStart(2, "0")}.md`,
+            data: debateRoundMarkdown(round, messages)
+          })),
+          { name: "rounds/all-debate.md", data: debateMarkdown(run) },
+          { name: "structured-ir-v1.5.md", data: structuredIrV15Markdown(run) },
+          { name: "structured-ir-v1.5.json", data: run?.structured_ir ? JSON.stringify(run.structured_ir, null, 2) : "" },
+          { name: "structured-ir.md", data: run?.group_summary || "" },
+          { name: "report.md", data: run?.final_report || "" },
+          {
+            name: "metadata.json",
+            data: JSON.stringify({
+              run_id: run?.run_id,
+              status: run?.status,
+              exported_at: new Date().toISOString(),
+              field: run?.template_input?.field || "",
+              rounds: debateRounds(run).length,
+              message_count: run?.debate_messages?.length || 0
+            }, null, 2)
+          }
+        ];
+        const documents = documentsMarkdown(run);
+        if (documents) entries.splice(1, 0, { name: "uploaded-documents.md", data: documents });
+        return entries.filter(entry => String(entry.data || "").trim());
+      }
+      function downloadRunBundle(run) {
+        const entries = bundleEntriesForRun(run);
+        if (!entries.length) return;
+        const blob = createZipBlob(entries);
+        downloadBlob(blob, bundleFilename(run));
+      }
+      function printMarkdownPdf(title, markdown) {
+        const popup = window.open("", "_blank");
+        if (!popup) {
+          setError("浏览器拦截了 PDF 导出窗口，请允许弹窗后重试。");
+          return;
+        }
+        const html = markdownToHtml(markdown || "");
+        popup.document.open();
+        popup.document.write(`
+          <!doctype html>
+          <html lang="zh-CN">
+          <head>
+            <meta charset="utf-8" />
+            <title>${escapeHtml(title)}</title>
+            <style>
+              @page { margin: 18mm 16mm; }
+              body {
+                color: #1f2d27;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+                font-size: 13px;
+                line-height: 1.72;
+              }
+              h1 { font-size: 22px; margin: 0 0 16px; page-break-after: avoid; }
+              h2 { border-bottom: 1px solid #d8e3dd; font-size: 17px; margin: 22px 0 10px; padding-bottom: 5px; page-break-after: avoid; }
+              h3 { font-size: 15px; margin: 16px 0 8px; page-break-after: avoid; }
+              p { margin: 7px 0; }
+              ul, ol { padding-left: 22px; }
+              li { margin: 3px 0; }
+              blockquote { border-left: 3px solid #b8d0c5; color: #4b5d55; margin: 10px 0; padding-left: 10px; }
+              code { background: #eef4f1; border-radius: 4px; padding: 1px 4px; }
+              pre { background: #f3f7f5; border: 1px solid #dce7e2; border-radius: 6px; overflow-wrap: anywhere; padding: 10px; white-space: pre-wrap; }
+              table { border-collapse: collapse; font-size: 12px; margin: 10px 0; width: 100%; }
+              th, td { border: 1px solid #d6e0db; padding: 6px 8px; text-align: left; vertical-align: top; }
+              th { background: #eef5f2; }
+              hr { border: 0; border-top: 1px solid #dce4e0; margin: 18px 0; }
+              .markdown-table-wrap { overflow: visible; }
+            </style>
+          </head>
+          <body>
+            <main>${html}</main>
+            <script>
+              window.addEventListener("load", () => setTimeout(() => window.print(), 250));
+            <\/script>
+          </body>
+          </html>
+        `);
+        popup.document.close();
+      }
+      function exportMarkdownOrPdf(markdown, filename, title, format) {
+        if (format === "pdf") {
+          printMarkdownPdf(title, markdown);
+          return;
+        }
+        downloadMarkdown(markdown, filename);
+      }
+      const ZIP_CRC_TABLE = (() => {
+        const table = new Uint32Array(256);
+        for (let index = 0; index < 256; index += 1) {
+          let value = index;
+          for (let bit = 0; bit < 8; bit += 1) {
+            value = (value & 1) ? (0xedb88320 ^ (value >>> 1)) : (value >>> 1);
+          }
+          table[index] = value >>> 0;
+        }
+        return table;
+      })();
+      function crc32(bytes) {
+        let crc = 0xffffffff;
+        for (const byte of bytes) {
+          crc = ZIP_CRC_TABLE[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+        }
+        return (crc ^ 0xffffffff) >>> 0;
+      }
+      function zipTimestampParts(date = new Date()) {
+        const year = Math.max(1980, date.getFullYear());
+        return {
+          time:
+            ((date.getHours() & 0x1f) << 11) |
+            ((date.getMinutes() & 0x3f) << 5) |
+            Math.floor(date.getSeconds() / 2),
+          date: (((year - 1980) & 0x7f) << 9) | (((date.getMonth() + 1) & 0x0f) << 5) | (date.getDate() & 0x1f)
+        };
+      }
+      function createZipBlob(entries) {
+        const encoder = new TextEncoder();
+        const locals = [];
+        const centrals = [];
+        let offset = 0;
+        const stamp = zipTimestampParts();
+
+        for (const entry of entries) {
+          const nameBytes = encoder.encode(entry.name);
+          const dataBytes = entry.data instanceof Uint8Array ? entry.data : encoder.encode(String(entry.data));
+          const crc = crc32(dataBytes);
+
+          const local = new Uint8Array(30 + nameBytes.length + dataBytes.length);
+          const localView = new DataView(local.buffer);
+          localView.setUint32(0, 0x04034b50, true);
+          localView.setUint16(4, 20, true);
+          localView.setUint16(6, 0, true);
+          localView.setUint16(8, 0, true);
+          localView.setUint16(10, stamp.time, true);
+          localView.setUint16(12, stamp.date, true);
+          localView.setUint32(14, crc, true);
+          localView.setUint32(18, dataBytes.length, true);
+          localView.setUint32(22, dataBytes.length, true);
+          localView.setUint16(26, nameBytes.length, true);
+          localView.setUint16(28, 0, true);
+          local.set(nameBytes, 30);
+          local.set(dataBytes, 30 + nameBytes.length);
+          locals.push(local);
+
+          const central = new Uint8Array(46 + nameBytes.length);
+          const centralView = new DataView(central.buffer);
+          centralView.setUint32(0, 0x02014b50, true);
+          centralView.setUint16(4, 20, true);
+          centralView.setUint16(6, 20, true);
+          centralView.setUint16(8, 0, true);
+          centralView.setUint16(10, 0, true);
+          centralView.setUint16(12, stamp.time, true);
+          centralView.setUint16(14, stamp.date, true);
+          centralView.setUint32(16, crc, true);
+          centralView.setUint32(20, dataBytes.length, true);
+          centralView.setUint32(24, dataBytes.length, true);
+          centralView.setUint16(28, nameBytes.length, true);
+          centralView.setUint16(30, 0, true);
+          centralView.setUint16(32, 0, true);
+          centralView.setUint16(34, 0, true);
+          centralView.setUint16(36, 0, true);
+          centralView.setUint32(38, 0, true);
+          centralView.setUint32(42, offset, true);
+          central.set(nameBytes, 46);
+          centrals.push(central);
+
+          offset += local.length;
+        }
+
+        const centralSize = centrals.reduce((sum, item) => sum + item.length, 0);
+        const end = new Uint8Array(22);
+        const endView = new DataView(end.buffer);
+        endView.setUint32(0, 0x06054b50, true);
+        endView.setUint16(4, 0, true);
+        endView.setUint16(6, 0, true);
+        endView.setUint16(8, entries.length, true);
+        endView.setUint16(10, entries.length, true);
+        endView.setUint32(12, centralSize, true);
+        endView.setUint32(16, offset, true);
+        endView.setUint16(20, 0, true);
+
+        return new Blob([...locals, ...centrals, end], { type: "application/zip" });
+      }
+      const $ = (id) => document.getElementById(id);
+
+      function loadSettings() {
+        try {
+          return normalizeSettings({ ...defaultSettings, ...JSON.parse(localStorage.getItem("ks-model-settings") || "{}") });
+        } catch {
+          return normalizeSettings(JSON.parse(JSON.stringify(defaultSettings)));
+        }
+      }
+      function normalizeSettings(settings) {
+        const defaults = JSON.parse(JSON.stringify(defaultSettings));
+        const existing = settings.providers || [];
+        const existingIds = new Set(existing.map(item => item.id));
+        const removedIds = new Set(["chatgpt-plus"]);
+        const presetApiIds = new Set(defaults.providers.filter(item => item.category === "api").map(item => item.id));
+        const presetProviderIds = new Set(defaults.providers.map(item => item.id));
+        const resetPresetModels = settings.version !== defaults.version;
+        settings.providers = [
+          ...existing
+            .filter(item => !removedIds.has(item.id) && item.api_type !== "chatgpt_codex" && (item.category || "api") !== "oauth")
+            .map(item => ({
+              category: "api",
+              ...item,
+              models: resetPresetModels && presetProviderIds.has(item.id) ? [] : (item.models || [])
+            })),
+          ...defaults.providers.filter(item => !existingIds.has(item.id))
+        ];
+        settings.activeProviderId = settings.activeProviderId || settings.providers[0]?.id;
+        settings.assignments = settings.assignments || {};
+        settings.version = defaults.version;
+        return settings;
+      }
+      function persistSettings() {
+        localStorage.setItem("ks-model-settings", JSON.stringify(state.settings));
+      }
+      function activeProvider() {
+        return state.settings.providers.find(item => item.id === state.settings.activeProviderId) || state.settings.providers[0];
+      }
+      function modelOptions() {
+        const options = [];
+        state.settings.providers.forEach(provider => {
+          provider.models.forEach(model => {
+            options.push({
+              value: `${provider.id}:${model.id}`,
+              label: `${provider.name} / ${model.name}`,
+              searchText: `${provider.name} ${provider.id} ${model.name} ${model.model} ${model.id} ${model.context_window || ""}`.toLowerCase()
+            });
+          });
+        });
+        return options;
+      }
+      function pickModelOption(options, keywordGroups, fallbackIndex = 0) {
+        for (const keywords of keywordGroups) {
+          const match = options.find(option => keywords.every(keyword => option.searchText.includes(keyword)));
+          if (match) return match.value;
+        }
+        return options[fallbackIndex]?.value || "";
+      }
+      function recommendedAssignments() {
+        const options = modelOptions();
+        if (!options.length) return {};
+        const fastIndex = options.findIndex(option => /flash|lite|turbo|mini|plus/.test(option.searchText));
+        const fallbackFast = fastIndex >= 0 ? fastIndex : 0;
+        return {
+          intake: pickModelOption(options, [["1m"], ["1000k"], ["glm", "5.1"], ["k2"], ["kimi"], ["deepseek", "pro"], ["qwen", "max"]]),
+          novelty: pickModelOption(options, [["deepseek", "flash"], ["flash"], ["qwen", "plus"], ["plus"]], fallbackFast),
+          mechanism: pickModelOption(options, [["deepseek", "pro"], ["glm"], ["qwen", "max"], ["qwen", "plus"], ["pro"]]),
+          feasibility: pickModelOption(options, [["deepseek", "flash"], ["qwen", "plus"], ["flash"], ["plus"]], fallbackFast),
+          reviewer: pickModelOption(options, [["deepseek", "pro"], ["glm"], ["k2.6"], ["kimi"], ["pro"]]),
+          moderator: pickModelOption(options, [["qwen", "plus"], ["deepseek", "flash"], ["flash"], ["plus"], ["pro"]], fallbackFast),
+          group_summarizer: pickModelOption(options, [["deepseek", "pro"], ["glm"], ["qwen", "plus"], ["pro"], ["plus"]]),
+          output: pickModelOption(options, [["deepseek", "pro"], ["glm"], ["qwen", "plus"], ["pro"], ["plus"]])
+        };
+      }
+      function applyRecommendedAgentConfig() {
+        saveProviderDraft();
+        const recommendation = recommendedAssignments();
+        if (!Object.keys(recommendation).length) {
+          setError("请先添加至少一个模型，再生成推荐配置。");
+          return;
+        }
+        Object.entries(recommendation).forEach(([key, value]) => {
+          if (value) state.settings.assignments[key] = value;
+        });
+        setError("已生成推荐 Agent 配置。你可以继续手动调整，确认后点击“保存设置”。");
+        renderSettings();
+      }
+      function renderForm() {
+        $("form").innerHTML = fields.map(([key, label, placeholder, required]) => `
+          <label>
+            <span>${label}${required ? "<b>*</b>" : ""}</span>
+            <textarea id="field-${key}" rows="${key === "background" || key === "existing_basis" ? 4 : 2}" placeholder="${placeholder}">${state.template[key] || ""}</textarea>
+          </label>
+        `).join("");
+        fields.forEach(([key]) => {
+          $(`field-${key}`).addEventListener("input", (event) => {
+            state.template[key] = event.target.value;
+            updateCompletion();
+          });
+        });
+        updateCompletion();
+      }
+      function updateCompletion() {
+        const requiredKeys = fields.filter(([, , , required]) => required).map(([key]) => key);
+        const optionalKeys = fields.filter(([, , , required]) => !required).map(([key]) => key);
+        const requiredDone = requiredKeys.filter(key => String(state.template[key] || "").trim()).length;
+        const optionalDone = optionalKeys.filter(key => String(state.template[key] || "").trim()).length;
+        const requiredScore = requiredKeys.length ? requiredDone / requiredKeys.length * 78 : 78;
+        const optionalScore = optionalKeys.length ? optionalDone / optionalKeys.length * 22 : 0;
+        const percent = Math.round(Math.min(100, requiredScore + optionalScore));
+        if ($("completion-ring")) $("completion-ring").style.setProperty("--completion", `${percent}%`);
+        if ($("completion-percent")) $("completion-percent").textContent = `${percent}%`;
+      }
+      function renderDocuments() {
+        $("document-list").innerHTML = state.documents.length ? state.documents.map(document => `
+          <div class="document-item" data-document="${document.id}">
+            <div class="document-row">
+              <div class="document-name">${escapeHtml(document.name)}<br /><small>${formatChars(document.content?.length || 0)} 字符</small></div>
+              <select class="document-type">
+                <option value="design" ${document.doc_type === "design" ? "selected" : ""}>design</option>
+                <option value="experiment-data" ${document.doc_type === "experiment-data" ? "selected" : ""}>experiment-data</option>
+                <option value="other" ${document.doc_type === "other" ? "selected" : ""}>other</option>
+              </select>
+              <button class="danger remove-document">删除</button>
+            </div>
+            <textarea class="document-note" rows="2" placeholder="为该文档添加注释">${escapeHtml(document.note || "")}</textarea>
+          </div>
+        `).join("") : "<div class='empty'>还没有上传文档。</div>";
+        document.querySelectorAll("[data-document]").forEach(row => {
+          const id = row.dataset.document;
+          row.querySelector(".document-type").addEventListener("change", event => {
+            updateDocument(id, { doc_type: event.target.value });
+          });
+          row.querySelector(".document-note").addEventListener("input", event => {
+            updateDocument(id, { note: event.target.value });
+          });
+          row.querySelector(".remove-document").addEventListener("click", () => {
+            state.documents = state.documents.filter(document => document.id !== id);
+            renderDocuments();
+          });
+        });
+      }
+      function updateDocument(id, patch) {
+        state.documents = state.documents.map(document => (
+          document.id === id ? { ...document, ...patch } : document
+        ));
+      }
+      async function addDocuments(files) {
+        for (const file of files) {
+          const content = await file.text();
+          state.documents.push({
+            id: `doc-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+            name: file.name,
+            doc_type: inferDocumentType(file.name),
+            content,
+            note: ""
+          });
+        }
+        renderDocuments();
+      }
+      function inferDocumentType(name) {
+        const lower = name.toLowerCase();
+        if (lower.includes("design") || lower.includes("方案") || lower.includes("设计")) return "design";
+        if (lower.includes("data") || lower.includes("experiment") || lower.includes("实验")) return "experiment-data";
+        return "other";
+      }
+      function formatChars(count) {
+        return count >= 10000 ? `${(count / 10000).toFixed(1)} 万` : String(count);
+      }
+      async function request(path, options) {
+        const response = await fetch(path, options);
+        if (!response.ok) {
+          const text = await response.text();
+          try {
+            const data = JSON.parse(text);
+            throw new Error(data.detail || text);
+          } catch (error) {
+            if (error instanceof SyntaxError) throw new Error(text);
+            throw error;
+          }
+        }
+        return response.json();
+      }
+      function runPayload(template = state.template, options = {}) {
+        return {
+          template_input: template,
+          rounds: options.rounds ?? state.rounds,
+          parallel_first_round: options.parallelFirstRound ?? state.parallelFirstRound,
+          documents: options.documents ?? state.documents,
+          model_settings: options.modelSettings || {
+            providers: state.settings.providers,
+            assignments: state.settings.assignments
+          }
+        };
+      }
+      function isTerminalStatus(status) {
+        return ["COMPLETED", "FAILED", "CANCELED"].includes(status);
+      }
+      function isRunningStatus(status) {
+        return ["CREATED", "TEMPLATE_VALIDATED", "INTAKE_RUNNING", "DEBATE_RUNNING", "GROUP_SUMMARY_RUNNING", "FINAL_REPORT_RUNNING"].includes(status);
+      }
+      function patchHistoryItem(run) {
+        if (!run?.run_id) return;
+        const escapedRunId = window.CSS?.escape ? CSS.escape(run.run_id) : run.run_id.replace(/"/g, '\\"');
+        const button = document.querySelector(`[data-run="${escapedRunId}"]`);
+        if (!button) return;
+        const small = button.querySelector("small");
+        if (small) small.textContent = `${run.status} · 更新 ${new Date(run.updated_at || run.created_at).toLocaleString()}`;
+        const meta = button.querySelector(".history-candidates");
+        if (meta) meta.innerHTML = historyCandidatesHtml(run);
+        const item = button.closest(".history-item");
+        const actions = item?.querySelector(".history-actions-inline");
+        if (!actions) return;
+        actions.innerHTML = `
+          ${["FAILED", "CANCELED"].includes(run.status) ? `<button class="ghost copy-mini" data-history-resume="${run.run_id}">继续分析</button>` : ""}
+          ${run.status === "COMPLETED" ? `<button class="ghost copy-mini" data-history-download-report="${run.run_id}">报告</button>` : ""}
+          ${run.status === "COMPLETED" ? `<button class="ghost copy-mini" data-history-download-bundle="${run.run_id}">打包</button>` : ""}
+          ${run.status === "COMPLETED" ? `<button class="ghost copy-mini" data-history-download-json="${run.run_id}">JSON</button>` : ""}
+          <small>${escapeHtml(run.run_id)}</small>
+        `;
+        bindHistoryActionButtons();
+      }
+      function historyCandidatesHtml(item) {
+        const titles = item?.candidate_titles?.length
+          ? item.candidate_titles
+          : (item?.structured_ir?.candidate_directions || []).map(candidate => candidate.title).slice(0, 3);
+        if (!titles.length) return "";
+        return `<span>${titles.map(title => escapeHtml(title)).join(" / ")}</span>`;
+      }
+      async function createRun(template = state.template, options = {}) {
+        try {
+          setError("");
+          setBusy(true);
+          state.activeRounds = options.rounds ?? state.rounds;
+          const normalizedDocuments = normalizeLoadedDocuments(options.documents ?? state.documents);
+          state.run = await request("/api/runs", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(runPayload(template, { ...options, documents: normalizedDocuments }))
+          });
+          state.rounds = state.activeRounds;
+          state.template = { ...state.template, ...(state.run.template_input || template) };
+          state.documents = normalizedDocuments;
+          state.parallelFirstRound = options.parallelFirstRound ?? state.parallelFirstRound;
+          renderForm();
+          renderDocuments();
+          renderRun();
+          startPolling(state.run.run_id);
+          loadHistory();
+        } catch (error) {
+          setError(error.message || "运行失败");
+          setBusy(false);
+        }
+      }
+      function startPolling(runId) {
+        if (state.pollTimer) window.clearInterval(state.pollTimer);
+        let inFlight = false;
+        const tick = async () => {
+          if (inFlight) return;
+          inFlight = true;
+          try {
+            const nextRun = await request(`/api/runs/${runId}`);
+            if (state.run?.run_id && state.run.run_id !== runId) return;
+            state.run = nextRun;
+            renderRun();
+            patchHistoryItem(state.run);
+            if (isTerminalStatus(state.run.status)) {
+              window.clearInterval(state.pollTimer);
+              state.pollTimer = null;
+              setBusy(false);
+              loadHistory();
+            }
+          } catch (error) {
+            window.clearInterval(state.pollTimer);
+            state.pollTimer = null;
+            setBusy(false);
+            setError(error.message || "读取进度失败");
+          } finally {
+            inFlight = false;
+          }
+        };
+        state.pollTimer = window.setInterval(tick, 900);
+        tick();
+      }
+      async function fetchRun(runId) {
+        return request(`/api/runs/${runId}`);
+      }
+      async function openRun(runId) {
+        if (state.pollTimer) {
+          window.clearInterval(state.pollTimer);
+          state.pollTimer = null;
+        }
+        setBusy(true);
+        setError("");
+        try {
+          state.run = await fetchRun(runId);
+          state.template = { ...state.template, ...(state.run.template_input || {}) };
+          state.documents = normalizeLoadedDocuments(state.run.documents || []);
+          state.rounds = inferRunRounds(state.run);
+          state.parallelFirstRound = inferParallelFirstRound(state.run);
+          state.activeRounds = state.rounds;
+          state.activeDebateRound = Math.max(...state.run.debate_messages.map(message => message.round), 1);
+          renderForm();
+          renderDocuments();
+          renderRun();
+          if (isRunningStatus(state.run.status)) {
+            setBusy(true);
+            startPolling(runId);
+          }
+          return state.run;
+        } finally {
+          if (!state.run || !isRunningStatus(state.run.status)) setBusy(false);
+        }
+      }
+      async function rerunFromRun(sourceRun) {
+        if (!sourceRun) return;
+        await createRun(sourceRun.template_input, {
+          rounds: inferRunRounds(sourceRun),
+          parallelFirstRound: inferParallelFirstRound(sourceRun),
+          documents: sourceRun.documents || [],
+          modelSettings: {
+            providers: state.settings.providers,
+            assignments: state.settings.assignments
+          }
+        });
+      }
+      async function rerun() {
+        if (!state.run) return;
+        await rerunFromRun(state.run);
+      }
+      async function resumeFromRun(sourceRun) {
+        if (!sourceRun) return;
+        try {
+          setError("");
+          setBusy(true);
+          state.run = await request(`/api/runs/${sourceRun.run_id}/resume`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              rounds: inferRunRounds(sourceRun),
+              parallel_first_round: inferParallelFirstRound(sourceRun),
+              model_settings: {
+                providers: state.settings.providers,
+                assignments: state.settings.assignments
+              }
+            })
+          });
+          state.activeRounds = inferRunRounds(state.run);
+          state.rounds = state.activeRounds;
+          state.parallelFirstRound = inferParallelFirstRound(state.run);
+          renderRun();
+          startPolling(state.run.run_id);
+          loadHistory();
+        } catch (error) {
+          setBusy(false);
+          setError(error.message || "继续分析失败");
+        }
+      }
+      async function resumeCurrent() {
+        if (!state.run) return;
+        await resumeFromRun(state.run);
+      }
+      async function stopRun() {
+        if (!state.run || !isRunningStatus(state.run.status)) return;
+        try {
+          setError("");
+          state.run = await request(`/api/runs/${state.run.run_id}/cancel`, { method: "POST" });
+          if (state.pollTimer) {
+            window.clearInterval(state.pollTimer);
+            state.pollTimer = null;
+          }
+          setBusy(false);
+          renderRun();
+          loadHistory();
+        } catch (error) {
+          setError(error.message || "停止分析失败");
+        }
+      }
+      function downloadRunReport(sourceRun, format = "md") {
+        if (!sourceRun?.final_report) return;
+        exportMarkdownOrPdf(
+          sourceRun.final_report,
+          reportFilename(sourceRun, "md"),
+          `${baseExportName(sourceRun)} 最终报告`,
+          format
+        );
+      }
+      function downloadRunSummary(sourceRun, format = "md") {
+        if (!sourceRun?.group_summary && !sourceRun?.structured_ir) return;
+        const markdown = [
+          structuredIrV15Markdown(sourceRun),
+          sourceRun?.group_summary ? "# 结构化 IR Markdown\n\n" + sourceRun.group_summary : ""
+        ].filter(Boolean).join("\n\n---\n\n");
+        exportMarkdownOrPdf(
+          markdown,
+          summaryFilename(sourceRun, "md"),
+          `${baseExportName(sourceRun)} 结构化 IR`,
+          format
+        );
+      }
+      function downloadRunJson(sourceRun) {
+        if (!sourceRun) return;
+        downloadJsonFile(sourceRun, runJsonFilename(sourceRun));
+      }
+      function downloadRunDebatePdf(sourceRun) {
+        const debate = debateMarkdown(sourceRun);
+        if (!debate) return;
+        printMarkdownPdf(`${baseExportName(sourceRun)} 讨论过程`, debate);
+      }
+      function downloadRunBundleFile(sourceRun, format = "md") {
+        if (!sourceRun?.final_report && !sourceRun?.group_summary && !sourceRun?.debate_messages?.length) return;
+        if (format === "pdf") {
+          printMarkdownPdf(`${baseExportName(sourceRun)} 完整分析归档`, runArchiveMarkdown(sourceRun));
+          return;
+        }
+        downloadRunBundle(sourceRun);
+      }
+      function bindHistoryActionButtons() {
+        document.querySelectorAll("[data-run]").forEach(button => {
+          button.onclick = () => openRun(button.dataset.run).catch(error => setError(error.message || "无法打开历史记录"));
+        });
+        document.querySelectorAll("[data-history-resume]").forEach(button => {
+          button.onclick = async () => {
+            try {
+              const opened = await openRun(button.dataset.historyResume);
+              if (opened) {
+                setError(`已打开失败记录，失败环节：${opened.current_step || "未知"}。可先在“模型设置”里重选对应 Agent 模型，然后点击“继续分析”。`);
+              }
+            } catch (error) {
+              setError(error.message || "打开失败记录失败");
+            }
+          };
+        });
+        document.querySelectorAll("[data-history-download-report]").forEach(button => {
+          button.onclick = async () => {
+            try {
+              const opened = await openRun(button.dataset.historyDownloadReport);
+              if (opened) downloadRunReport(opened);
+            } catch (error) {
+              setError(error.message || "下载报告失败");
+            }
+          };
+        });
+        document.querySelectorAll("[data-history-download-bundle]").forEach(button => {
+          button.onclick = async () => {
+            try {
+              const opened = await openRun(button.dataset.historyDownloadBundle);
+              if (opened) downloadRunBundleFile(opened);
+            } catch (error) {
+              setError(error.message || "打包导出失败");
+            }
+          };
+        });
+        document.querySelectorAll("[data-history-download-json]").forEach(button => {
+          button.onclick = async () => {
+            try {
+              const opened = await openRun(button.dataset.historyDownloadJson);
+              if (opened) downloadRunJson(opened);
+            } catch (error) {
+              setError(error.message || "下载 JSON 失败");
+            }
+          };
+        });
+        document.querySelectorAll("[data-history-check]").forEach(checkbox => {
+          checkbox.onchange = () => {
+            if (checkbox.checked) state.selectedHistory.add(checkbox.dataset.historyCheck);
+            else state.selectedHistory.delete(checkbox.dataset.historyCheck);
+          };
+        });
+      }
+      async function loadHistory() {
+        const history = await request("/api/history");
+        state.selectedHistory = new Set(
+          [...state.selectedHistory].filter(runId => history.some(item => item.run_id === runId))
+        );
+        $("history").innerHTML = history.length ? history.map(item => `
+          <div class="history-item">
+            <input type="checkbox" data-history-check="${item.run_id}" ${state.selectedHistory.has(item.run_id) ? "checked" : ""} />
+            <button class="history-open" data-run="${item.run_id}">
+              <span>${escapeHtml(item.field)}</span><br />
+              <small>${item.status} · 更新 ${new Date(item.updated_at || item.created_at).toLocaleString()}</small>
+              <div class="history-candidates">${historyCandidatesHtml(item)}</div>
+            </button>
+            <div class="history-actions-inline">
+              ${["FAILED", "CANCELED"].includes(item.status) ? `<button class="ghost copy-mini" data-history-resume="${item.run_id}">继续分析</button>` : ""}
+              ${item.status === "COMPLETED" ? `<button class="ghost copy-mini" data-history-download-report="${item.run_id}">报告</button>` : ""}
+              ${item.status === "COMPLETED" ? `<button class="ghost copy-mini" data-history-download-bundle="${item.run_id}">打包</button>` : ""}
+              ${item.status === "COMPLETED" ? `<button class="ghost copy-mini" data-history-download-json="${item.run_id}">JSON</button>` : ""}
+              <small>${escapeHtml(item.run_id)}</small>
+            </div>
+          </div>
+        `).join("") : "<div class='empty'>暂无历史记录。</div>";
+        bindHistoryActionButtons();
+      }
+      async function deleteSelectedHistory() {
+        const runIds = [...state.selectedHistory];
+        if (!runIds.length) {
+          setError("请先勾选要删除的历史记录。");
+          return;
+        }
+        await request("/api/history/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ run_ids: runIds })
+        });
+        state.selectedHistory.clear();
+        if (state.run && runIds.includes(state.run.run_id)) state.run = null;
+        renderRun();
+        await loadHistory();
+      }
+      async function showHistoryLocation() {
+        const location = await request("/api/history/location");
+        $("history-location").textContent = `历史记录文件夹：${location.folder}`;
+      }
+      function renderRun() {
+        const run = state.run;
+        $("status").textContent = run?.status || "READY";
+        $("metric-status").textContent = run?.status || "READY";
+        $("run-id").textContent = run ? `Run ID：${run.run_id}` : "等待启动一次 KS 工作流";
+        $("metric-rounds").textContent = run ? inferRunRounds(run) : "-";
+        $("metric-messages").textContent = run ? run.debate_messages.length : "-";
+        $("stop-run").disabled = !(run && isRunningStatus(run.status));
+        $("resume-run").disabled = !(run && ["FAILED", "CANCELED"].includes(run.status)) || $("start").disabled;
+        $("rerun").disabled = !(run && ["FAILED", "CANCELED"].includes(run.status)) || $("start").disabled;
+        renderProgress(run);
+        if (run?.structured_brief) renderBrief(run.structured_brief);
+        else {
+          $("briefs").className = "empty";
+          $("briefs").textContent = "提交模板后，这里会显示入口 Agent 生成的结构化 briefing。";
+          state.briefingSignature = "";
+        }
+        if (run?.debate_messages?.length) renderDebate(run.debate_messages);
+        else {
+          $("debate").className = "empty";
+          $("debate").textContent = "还没有讨论记录。";
+        }
+        renderSummary(run?.group_summary || "", run?.structured_ir || null);
+        renderReport(run?.final_report || "");
+        $("report").style.display = run?.final_report ? "block" : "none";
+        $("report-empty").style.display = run?.final_report ? "none" : "flex";
+        $("summary-empty").style.display = (run?.group_summary || run?.structured_ir) ? "none" : "flex";
+        $("copy").disabled = !run?.final_report;
+        $("download").disabled = !run?.final_report;
+        $("download-summary").disabled = !(run?.group_summary || run?.structured_ir);
+        $("download-debate-pdf").disabled = !run?.debate_messages?.length;
+        $("download-json").disabled = !run;
+        $("download-bundle").disabled = !(run?.final_report || run?.group_summary || run?.debate_messages?.length);
+        bindCopyButtons(run);
+      }
+      function renderSummary(text, structuredIr = null) {
+        if (!text && !structuredIr) {
+          $("summary").innerHTML = "";
+          state.summarySignature = "";
+          state.structuredIrSignature = "";
+          return;
+        }
+        const signature = `${text || ""}|${JSON.stringify(structuredIr || {})}`;
+        if (state.summarySignature === signature) return;
+        state.summarySignature = signature;
+        $("summary").innerHTML = `
+          <div class="summary">
+            <div class="content-head">
+              <strong>结构化 IR</strong>
+              <button class="ghost copy-mini" data-copy-content="group_summary">复制</button>
+            </div>
+            ${renderStructuredIrV15(structuredIr)}
+            <div class="summary-body markdown-rendered">${markdownToHtml(text)}</div>
+          </div>
+        `;
+      }
+      function renderStructuredIrV15(structuredIr) {
+        if (!structuredIr?.candidate_directions?.length && !structuredIr?.decision_summary) return "";
+        const candidates = [...(structuredIr.candidate_directions || [])]
+          .sort((a, b) => (a.priority || 99) - (b.priority || 99))
+          .slice(0, 5);
+        const evidenceCount = structuredIr.evidence_refs?.length || 0;
+        const critiqueCount = structuredIr.critique_points?.length || 0;
+        return `
+          <div class="ir-v15">
+            ${structuredIr.decision_summary ? `<div class="ir-decision">${escapeHtml(structuredIr.decision_summary)}</div>` : ""}
+            <div class="candidate-grid">
+              ${candidates.map(candidate => `
+                <div class="candidate-card">
+                  <small>Top ${candidate.priority || "-"} · ${escapeHtml(candidate.id || "")}</small>
+                  <strong>${escapeHtml(candidate.title || "未命名方向")}</strong>
+                  <small>${escapeHtml(candidate.research_question || candidate.rationale || "")}</small>
+                  <div class="candidate-meta">
+                    <span>证据 ${candidate.evidence_refs?.length || 0}</span>
+                    <span>批判 ${candidate.critique_refs?.length || 0}</span>
+                  </div>
+                  <small>${escapeHtml(candidate.priority_reason || "")}</small>
+                </div>
+              `).join("")}
+            </div>
+            <small>IR v${escapeHtml(structuredIr.version || "1.5")} · Evidence ${evidenceCount} · Critique ${critiqueCount}</small>
+          </div>
+        `;
+      }
+      function renderReport(text) {
+        const signature = text || "";
+        if (!signature) {
+          $("report").innerHTML = "";
+          state.reportSignature = "";
+          return;
+        }
+        if (state.reportSignature === signature) return;
+        state.reportSignature = signature;
+        $("report").innerHTML = markdownToHtml(text);
+      }
+      function renderProgress(run) {
+        if (!run) {
+          $("progress").innerHTML = "";
+          return;
+        }
+        if (run.timeline?.length) {
+          const rows = run.timeline.filter(step => !step.is_overall);
+          const overall = run.timeline.find(step => step.is_overall);
+          const visibleRows = progressRows(rows, overall);
+          $("progress").innerHTML = `
+            <div class="progress-toolbar">
+              <small>${state.progressExpanded ? "完整运行状态" : "当前运行状态"}</small>
+              <button class="ghost progress-toggle" id="progress-toggle">${state.progressExpanded ? "收起" : "展开"}</button>
+            </div>
+            ${visibleRows.map(item => renderTimelineStep(item.step, item.overall)).join("")}
+          `;
+          $("progress-toggle")?.addEventListener("click", () => {
+            state.progressExpanded = !state.progressExpanded;
+            renderProgress(run);
+          });
+          return;
+        }
+        const totalDebateMessages = state.activeRounds * agentSlots.filter(item => ["novelty", "mechanism", "feasibility", "reviewer"].includes(item[0])).length;
+        const debateDone = run.debate_messages.length;
+        const status = run.status;
+        const steps = [
+          ["创建运行并校验模板", ["INTAKE_RUNNING", "DEBATE_RUNNING", "GROUP_SUMMARY_RUNNING", "FINAL_REPORT_RUNNING", "COMPLETED", "CANCELED"].includes(status), ["CREATED", "TEMPLATE_VALIDATED"].includes(status)],
+          ["入口模型整理模板与上传文档", Boolean(run.structured_brief), status === "INTAKE_RUNNING"],
+          ["信息传送到讨论组", Boolean(run.structured_brief), status === "DEBATE_RUNNING" && debateDone === 0],
+          ...run.debate_messages.map(message => [
+            `${message.agent} 发言（第 ${message.round} 轮）`,
+            true,
+            false
+          ]),
+        ];
+        if (status === "DEBATE_RUNNING" && debateDone < totalDebateMessages) {
+          const order = ["Novelty Agent", "Mechanism Agent", "Feasibility Agent", "Reviewer Agent"];
+          steps.push([run.current_step || `${order[debateDone % 4]} 发言中`, false, true]);
+        }
+        steps.push(["结构化 IR", Boolean(run.group_summary), status === "GROUP_SUMMARY_RUNNING"]);
+        steps.push(["出口模型生成最终报告", Boolean(run.final_report), status === "FINAL_REPORT_RUNNING"]);
+        if (status === "COMPLETED") steps.push(["运行完成", true, false]);
+        if (status === "FAILED") steps.push([`运行失败${run.error ? "：" + run.error : ""}`, false, true]);
+        if (status === "CANCELED") steps.push(["分析已停止", false, true]);
+        $("progress").innerHTML = steps.map(([label, done, active]) => `
+          <div class="progress-step ${done ? "done" : ""} ${active ? "active" : ""}">
+            <span class="progress-dot"></span>
+            <span class="progress-label">${escapeHtml(label)}</span>
+            <span class="progress-time"></span>
+          </div>
+        `).join("");
+      }
+      function progressRows(rows, overall) {
+        if (state.progressExpanded) {
+          return [
+            ...rows.map(step => ({ step, overall: false })),
+            ...(overall ? [{ step: overall, overall: true }] : [])
+          ];
+        }
+        const current = rows.find(step => step.status === "running" || step.status === "failed" || step.status === "canceled");
+        if (current) return [{ step: current, overall: false }];
+        if (overall && ["running", "failed", "completed", "canceled"].includes(overall.status)) {
+          return [{ step: overall, overall: true }];
+        }
+        const lastDone = [...rows].reverse().find(step => step.status === "completed");
+        return lastDone ? [{ step: lastDone, overall: false }] : rows.slice(0, 1).map(step => ({ step, overall: false }));
+      }
+      function renderTimelineStep(step, isOverall = false) {
+        const done = step.status === "completed";
+        const active = step.status === "running" || step.status === "failed" || step.status === "canceled";
+        const time = timelineTimeLabel(step);
+        return `
+          <div class="progress-step ${done ? "done" : ""} ${active ? "active" : ""} ${isOverall ? "progress-overall" : ""}">
+            <span class="progress-dot"></span>
+            <span class="progress-label">${escapeHtml(step.label)}</span>
+            <span class="progress-time">${escapeHtml(time)}</span>
+          </div>
+        `;
+      }
+      function timelineTimeLabel(step) {
+        if (step.status === "completed" && step.finished_at) return `完成 ${formatTime(step.finished_at)}`;
+        if (step.status === "failed" && step.finished_at) return `失败 ${formatTime(step.finished_at)}`;
+        if (step.status === "canceled" && step.finished_at) return `停止 ${formatTime(step.finished_at)}`;
+        if (step.estimated_done_at) return `预计 ${formatTime(step.estimated_done_at)}`;
+        return "";
+      }
+      function formatTime(value) {
+        try {
+          return new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        } catch {
+          return "";
+        }
+      }
+      function renderBrief(brief) {
+        const signature = JSON.stringify(brief) + `|expanded:${state.briefingExpanded}`;
+        if (state.briefingSignature === signature && $("briefing-body")) return;
+        const previousBriefingTop = document.querySelector(".briefing-body")?.scrollTop ?? 0;
+        const groups = [["已知事实", brief.known_facts], ["未知问题", brief.unknowns], ["约束条件", brief.constraints], ["机会点", brief.opportunity_points]];
+        $("briefs").className = "briefs";
+        const blocks = groups.map(([title, items]) => `
+          <div class="brief"><h3>${title}</h3><ul>${items.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul></div>
+        `);
+        if (brief.intake_synthesis) {
+          blocks.push(`
+            <div class="brief briefing-card" style="grid-column:1 / -1">
+              <div class="briefing-head">
+                <h3>入口整合 Briefing</h3>
+                <div class="actions">
+                  <button class="ghost copy-mini" data-copy-content="intake_synthesis">复制</button>
+                  <button class="ghost progress-toggle" id="briefing-toggle">${state.briefingExpanded ? "收起" : "展开"}</button>
+                </div>
+              </div>
+              <div class="briefing-body markdown-rendered ${state.briefingExpanded ? "expanded" : ""}" id="briefing-body">${markdownToHtml(brief.intake_synthesis)}</div>
+            </div>
+          `);
+        }
+        $("briefs").innerHTML = blocks.join("");
+        state.briefingSignature = signature;
+        if ($("briefing-body")) $("briefing-body").scrollTop = previousBriefingTop;
+        $("briefing-toggle")?.addEventListener("click", () => {
+          state.briefingExpanded = !state.briefingExpanded;
+          renderBrief(brief);
+        });
+      }
+      function renderDebate(messages) {
+        const scrollTops = {};
+        document.querySelectorAll("[data-message-key]").forEach(node => {
+          scrollTops[node.dataset.messageKey] = node.scrollTop;
+        });
+        const byRound = new Map();
+        messages.forEach(message => {
+          if (!byRound.has(message.round)) byRound.set(message.round, []);
+          byRound.get(message.round).push(message);
+        });
+        const rounds = Array.from(byRound.keys()).sort((a, b) => a - b);
+        if (!byRound.has(state.activeDebateRound)) state.activeDebateRound = rounds[0] || 1;
+        const currentMessages = byRound.get(state.activeDebateRound) || [];
+        $("debate").className = "";
+        $("debate").innerHTML = `
+          <div class="round-tabs">
+            ${rounds.map(round => `<button class="ghost round-tab ${round === state.activeDebateRound ? "active" : ""}" data-round-tab="${round}">第 ${round} 轮</button>`).join("")}
+          </div>
+          <div class="round">
+            <div class="round-title">第 ${state.activeDebateRound} 轮</div>
+            <div class="messages">
+              ${currentMessages.map(message => {
+                const key = messageKey(message);
+                return `<article class="agent ${agentClass(message.agent)}"><header><strong>${message.agent}</strong><span class="content-head"><small>${escapeHtml(message.model_label || message.title)}</small><button class="ghost copy-mini" data-copy-message="${escapeAttr(key)}">复制</button></span></header><div class="agent-body markdown-rendered" data-message-key="${escapeAttr(key)}">${markdownToHtml(message.content)}</div></article>`;
+              }).join("")}
+            </div>
+          </div>
+        `;
+        document.querySelectorAll("[data-message-key]").forEach(node => {
+          const top = scrollTops[node.dataset.messageKey];
+          if (typeof top === "number") node.scrollTop = top;
+        });
+        document.querySelectorAll("[data-round-tab]").forEach(button => {
+          button.addEventListener("click", () => {
+            state.activeDebateRound = Number.parseInt(button.dataset.roundTab, 10);
+            renderDebate(messages);
+          });
+        });
+        document.querySelectorAll("[data-copy-message]").forEach(button => {
+          button.onclick = () => {
+            const message = currentMessages.find(item => messageKey(item) === button.dataset.copyMessage);
+            copyText(message?.content || "", button);
+          };
+        });
+      }
+      function messageKey(message) {
+        return `${message.round}-${message.agent}-${message.title || ""}`;
+      }
+      function agentClass(agentName = "") {
+        const value = String(agentName).toLowerCase();
+        if (value.includes("novelty")) return "novelty";
+        if (value.includes("mechanism")) return "mechanism";
+        if (value.includes("feasibility")) return "feasibility";
+        if (value.includes("reviewer")) return "reviewer";
+        if (value.includes("moderator")) return "moderator";
+        return "";
+      }
+      function markdownToHtml(markdown) {
+        const lines = String(markdown || "").split(/\r?\n/);
+        let html = "";
+        let listType = "";
+        let inCode = false;
+        const closeList = () => {
+          if (listType) {
+            html += `</${listType}>`;
+            listType = "";
+          }
+        };
+        const renderTable = (tableLines) => {
+          const rows = tableLines
+            .filter(row => !/^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(row))
+            .map(row => row.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(cell => cell.trim()));
+          if (!rows.length) return "";
+          const head = rows[0];
+          const body = rows.slice(1);
+          return `<div class="markdown-table-wrap"><table><thead><tr>${head.map(cell => `<th>${inlineMarkdown(cell)}</th>`).join("")}</tr></thead><tbody>${body.map(row => `<tr>${head.map((_, index) => `<td>${inlineMarkdown(row[index] || "")}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+        };
+        for (let index = 0; index < lines.length; index += 1) {
+          const rawLine = lines[index];
+          const line = rawLine.trimEnd();
+          const trimmed = line.trim();
+          if (line.trim().startsWith("```")) {
+            closeList();
+            if (!inCode) {
+              html += "<pre><code>";
+              inCode = true;
+            } else {
+              html += "</code></pre>";
+              inCode = false;
+            }
+            continue;
+          }
+          if (inCode) {
+            html += `${escapeHtml(line)}\n`;
+            continue;
+          }
+          if (!trimmed) {
+            closeList();
+            continue;
+          }
+          if (isTableLine(trimmed)) {
+            closeList();
+            const tableLines = [line];
+            while (index + 1 < lines.length && isTableLine(lines[index + 1].trim())) {
+              index += 1;
+              tableLines.push(lines[index]);
+            }
+            html += renderTable(tableLines);
+            continue;
+          }
+          if (/^[-*_]{3,}$/.test(trimmed)) {
+            closeList();
+            html += "<hr />";
+          } else if (/^#{1,6}\s*/.test(trimmed)) {
+            closeList();
+            const match = trimmed.match(/^(#{1,6})\s*(.+)$/);
+            const level = Math.min(match?.[1]?.length || 3, 3);
+            html += `<h${level}>${inlineMarkdown(match?.[2] || trimmed)}</h${level}>`;
+          } else if (/^>\s?/.test(trimmed)) {
+            closeList();
+            html += `<blockquote>${inlineMarkdown(trimmed.replace(/^>\s?/, ""))}</blockquote>`;
+          } else if (/^[-*+]\s+/.test(trimmed)) {
+            if (listType !== "ul") {
+              closeList();
+              html += "<ul>";
+              listType = "ul";
+            }
+            html += `<li>${inlineMarkdown(trimmed.replace(/^[-*+]\s+/, ""))}</li>`;
+          } else if (/^\d+[.)]\s+/.test(trimmed)) {
+            if (listType !== "ol") {
+              closeList();
+              html += "<ol>";
+              listType = "ol";
+            }
+            html += `<li>${inlineMarkdown(trimmed.replace(/^\d+[.)]\s+/, ""))}</li>`;
+          } else {
+            closeList();
+            html += `<p>${inlineMarkdown(line)}</p>`;
+          }
+        }
+        closeList();
+        if (inCode) html += "</code></pre>";
+        return html;
+      }
+      function inlineMarkdown(value) {
+        return escapeHtml(value)
+          .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+          .replace(/`([^`]+)`/g, "<code>$1</code>");
+      }
+      function isTableLine(line) {
+        return line.includes("|") && line.split("|").length >= 3;
+      }
+      function renderSettings() {
+        const provider = activeProvider();
+        $("provider-items").innerHTML = providerGroups.map(([category, label]) => {
+          const items = state.settings.providers.filter(item => (item.category || "api") === category);
+          if (!items.length) return "";
+          return `<div class="provider-group">${label}</div>` + items.map(item => `
+            <button class="provider-item ${item.id === provider?.id ? "active" : ""}" data-provider="${item.id}">
+              <span><span class="provider-dot"></span> ${escapeHtml(item.name)}</span>
+              <small>${item.models.length}</small>
+            </button>
+          `).join("");
+        }).join("");
+        document.querySelectorAll("[data-provider]").forEach(button => {
+          button.addEventListener("click", () => {
+            saveProviderDraft();
+            state.settings.activeProviderId = button.dataset.provider;
+            renderSettings();
+          });
+        });
+        if (!provider) return;
+        $("provider-title").textContent = provider.name || "未命名供应商";
+        $("provider-name").value = provider.name || "";
+        $("provider-key").value = provider.api_key || "";
+        $("provider-base").value = provider.base_url || "";
+        $("provider-type").innerHTML = apiTypes.map(([value, label]) => `<option value="${value}">${label}</option>`).join("");
+        $("provider-type").value = provider.api_type || "openai_compatible";
+        $("provider-insecure-tls").checked = Boolean(provider.allow_insecure_tls);
+        $("model-count").textContent = provider.models.length;
+        $("model-search").value = state.modelSearch || "";
+        $("model-list").innerHTML = provider.models.map(model => `
+          <div class="model-item" data-model="${model.id}">
+            <input class="model-name" value="${escapeAttr(model.name)}" placeholder="显示名称" />
+            <input class="model-id" value="${escapeAttr(model.model)}" placeholder="模型 ID，如 deepseek-v4-flash" />
+            <button class="danger remove-model">删除</button>
+          </div>
+        `).join("") || "<div class='empty'>还没有模型。</div>";
+        document.querySelectorAll(".remove-model").forEach(button => {
+          button.addEventListener("click", () => {
+            const id = button.closest("[data-model]").dataset.model;
+            provider.models = provider.models.filter(model => model.id !== id);
+            Object.keys(state.settings.assignments).forEach(agentKey => {
+              if (state.settings.assignments[agentKey] === `${provider.id}:${id}`) {
+                delete state.settings.assignments[agentKey];
+              }
+            });
+            renderSettings();
+          });
+        });
+        renderModelCandidates();
+        const options = modelOptions();
+        $("agent-grid").innerHTML = agentSlots.map(([key, label, english, group]) => `
+          <div class="agent-row">
+            <strong>${label}<small style="display:block;color:#7a8982;font-size:12px;margin-top:4px">${escapeHtml(english)}</small></strong>
+            <div class="agent-control">
+              <select data-agent="${key}">
+                <option value="">本地 Mock</option>
+                ${options.map(option => `<option value="${option.value}" ${state.settings.assignments[key] === option.value ? "selected" : ""}>${escapeHtml(option.label)}</option>`).join("")}
+              </select>
+              <span class="agent-meta">${escapeHtml(group)}</span>
+              <span class="agent-rec">${escapeHtml(agentRecommendations[key] || "")}</span>
+            </div>
+          </div>
+        `).join("");
+        document.querySelectorAll("[data-agent]").forEach(select => {
+          select.addEventListener("change", () => {
+            if (select.value) state.settings.assignments[select.dataset.agent] = select.value;
+            else delete state.settings.assignments[select.dataset.agent];
+          });
+        });
+        $("recommend-agent-config")?.addEventListener("click", () => {
+          applyRecommendedAgentConfig();
+        });
+      }
+      function saveProviderDraft() {
+        const provider = activeProvider();
+        if (!provider || !$("provider-name")) return;
+        provider.name = $("provider-name").value.trim() || "未命名供应商";
+        provider.category = provider.category || "api";
+        provider.api_key = $("provider-key").value.trim();
+        provider.base_url = $("provider-base").value.trim();
+        provider.api_type = $("provider-type").value;
+        provider.allow_insecure_tls = $("provider-insecure-tls").checked;
+        document.querySelectorAll("[data-model]").forEach(row => {
+          const model = provider.models.find(item => item.id === row.dataset.model);
+          if (!model) return;
+          model.name = row.querySelector(".model-name").value.trim() || model.model;
+          model.model = row.querySelector(".model-id").value.trim();
+        });
+      }
+      function addProvider() {
+        const id = `provider-${Date.now()}`;
+        state.settings.providers.push({ id, name: "新供应商", category: "api", api_key: "", base_url: "", api_type: "openai_compatible", allow_insecure_tls: false, models: [] });
+        state.settings.activeProviderId = id;
+        renderSettings();
+      }
+      function addModel(model) {
+        saveProviderDraft();
+        const provider = activeProvider();
+        const typed = $("model-search")?.value.trim() || "";
+        const source = model || (typed ? { id: typed, name: typed, model: typed, context_window: "" } : null);
+        if (!source) {
+          setError("请先读取模型并选择，或手动输入模型 ID。");
+          return;
+        }
+        const modelId = source.model || source.id;
+        if (provider.models.some(item => item.model === modelId)) {
+          setError("该模型已添加。");
+          return;
+        }
+        const id = source.id || `model-${Date.now()}`;
+        provider.models.push({
+          id: provider.models.some(item => item.id === id) ? `${id}-${Date.now()}` : id,
+          name: source.name || modelId,
+          model: modelId,
+          context_window: source.context_window || ""
+        });
+        state.modelSearch = "";
+        setError("");
+        renderSettings();
+      }
+      function candidateModels() {
+        const provider = activeProvider();
+        if (!provider) return [];
+        const added = new Set(provider.models.map(item => item.model));
+        const query = (state.modelSearch || "").toLowerCase();
+        return (state.discoveredModels[provider.id] || [])
+          .filter(model => !added.has(model.model || model.id))
+          .filter(model => {
+            const text = `${model.name || ""} ${model.model || ""} ${model.id || ""}`.toLowerCase();
+            return !query || text.includes(query);
+          });
+      }
+      function renderModelCandidates() {
+        const provider = activeProvider();
+        const candidates = candidateModels();
+        const hasInput = Boolean(state.modelSearch);
+        const hasDiscovered = Boolean(provider && state.discoveredModels[provider.id]?.length);
+        const collapsed = Boolean(provider && state.modelCandidatesCollapsed[provider.id]);
+        $("model-candidates").className = `model-candidate-list ${(candidates.length || hasInput || hasDiscovered) ? "open" : ""}`;
+        if (collapsed) {
+          $("model-candidates").innerHTML = `<div class="model-candidate-head"><span>模型候选已收起</span><button id="toggle-candidates">展开</button></div>`;
+          $("toggle-candidates")?.addEventListener("click", () => {
+            state.modelCandidatesCollapsed[provider.id] = false;
+            renderModelCandidates();
+          });
+          return;
+        }
+        const head = hasDiscovered ? `<div class="model-candidate-head"><span>候选模型 ${candidates.length}</span><button id="toggle-candidates">收起</button></div>` : "";
+        $("model-candidates").innerHTML = head + (candidates.length ? candidates.slice(0, 80).map(model => `
+          <button class="model-candidate" data-candidate="${escapeAttr(model.id)}">
+            <span>${escapeHtml(model.name || model.model || model.id)}</span>
+            <small>${escapeHtml(model.context_window || "")}</small>
+          </button>
+        `).join("") : (hasInput ? "<div class='empty'>回车或点击“添加模型”添加输入的模型 ID。</div>" : ""));
+        $("toggle-candidates")?.addEventListener("click", () => {
+          state.modelCandidatesCollapsed[provider.id] = true;
+          renderModelCandidates();
+        });
+        document.querySelectorAll("[data-candidate]").forEach(button => {
+          button.addEventListener("click", () => {
+            const provider = activeProvider();
+            const model = (state.discoveredModels[provider.id] || []).find(item => item.id === button.dataset.candidate);
+            if (model) addModel(model);
+          });
+        });
+      }
+      async function discoverModels() {
+        saveProviderDraft();
+        const provider = activeProvider();
+        try {
+          const result = await request("/api/models/discover", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(provider)
+          });
+          state.discoveredModels[provider.id] = result.models.map(model => ({
+            id: model.id,
+            name: model.name,
+            model: model.model,
+            context_window: model.context_window || ""
+          }));
+          state.modelCandidatesCollapsed[provider.id] = false;
+          state.modelSearch = "";
+          setError("");
+          renderSettings();
+        } catch (error) {
+          setError(error.message || "读取模型失败");
+        }
+      }
+      function deleteProvider() {
+        const provider = activeProvider();
+        if (!provider) return;
+        state.settings.providers = state.settings.providers.filter(item => item.id !== provider.id);
+        Object.keys(state.settings.assignments).forEach(agentKey => {
+          if (state.settings.assignments[agentKey].startsWith(`${provider.id}:`)) {
+            delete state.settings.assignments[agentKey];
+          }
+        });
+        if (!state.settings.providers.length) state.settings.providers.push({ ...defaultSettings.providers[0], api_key: "" });
+        state.settings.activeProviderId = state.settings.providers[0].id;
+        renderSettings();
+      }
+      function setBusy(isBusy) {
+        $("start").disabled = isBusy;
+        $("start").textContent = isBusy ? "分析中" : "开始分析";
+        $("status").textContent = isBusy ? "RUNNING" : (state.run?.status || "READY");
+        if ($("stop-run")) $("stop-run").disabled = !(state.run && isRunningStatus(state.run.status));
+        if ($("resume-run")) $("resume-run").disabled = isBusy || !(state.run && ["FAILED", "CANCELED"].includes(state.run.status));
+      }
+      function setError(message) {
+        $("error").style.display = message ? "flex" : "none";
+        $("error-text").textContent = message;
+      }
+      function bindCopyButtons(run) {
+        document.querySelectorAll("[data-copy-content]").forEach(button => {
+          button.onclick = () => {
+            const key = button.dataset.copyContent;
+            const content = {
+              intake_synthesis: run?.structured_brief?.intake_synthesis || "",
+              group_summary: run?.group_summary || "",
+              final_report: run?.final_report || ""
+            }[key] || "";
+            copyText(content, button);
+          };
+        });
+      }
+      async function copyText(text, button) {
+        if (!text) {
+          setError("当前区域还没有可复制内容。");
+          return;
+        }
+        await navigator.clipboard.writeText(text);
+        const previous = button.textContent;
+        button.textContent = "已复制";
+        setTimeout(() => { button.textContent = previous; }, 1400);
+      }
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+      }
+      function escapeAttr(value) {
+        return escapeHtml(value).replace(/`/g, "&#96;");
+      }
+      $("start").addEventListener("click", () => createRun());
+      $("stop-run").addEventListener("click", () => stopRun());
+      $("resume-run").addEventListener("click", () => resumeCurrent());
+      $("rerun").addEventListener("click", rerun);
+      $("copy").addEventListener("click", async () => {
+        await copyText(state.run?.final_report || "", $("copy"));
+      });
+      $("download").addEventListener("click", () => {
+        downloadRunReport(state.run, $("report-format").value);
+      });
+      $("download-summary").addEventListener("click", () => {
+        downloadRunSummary(state.run, $("summary-format").value);
+      });
+      $("download-debate-pdf").addEventListener("click", () => {
+        downloadRunDebatePdf(state.run);
+      });
+      $("download-json").addEventListener("click", () => {
+        downloadRunJson(state.run);
+      });
+      $("download-bundle").addEventListener("click", () => {
+        downloadRunBundleFile(state.run, $("bundle-format").value);
+      });
+      $("open-settings").addEventListener("click", () => {
+        renderSettings();
+        $("settings-modal").classList.add("open");
+      });
+      $("close-settings").addEventListener("click", () => $("settings-modal").classList.remove("open"));
+      $("save-settings").addEventListener("click", () => {
+        saveProviderDraft();
+        persistSettings();
+        renderSettings();
+        $("settings-modal").classList.remove("open");
+      });
+      $("add-provider").addEventListener("click", addProvider);
+      $("add-model").addEventListener("click", () => addModel());
+      $("delete-provider").addEventListener("click", deleteProvider);
+      $("discover-models").addEventListener("click", discoverModels);
+      $("model-search").addEventListener("input", (event) => {
+        state.modelSearch = event.target.value;
+        renderModelCandidates();
+      });
+      $("model-search").addEventListener("focus", renderModelCandidates);
+      $("model-search").addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          const first = candidateModels()[0];
+          addModel(first);
+        }
+      });
+      $("close-error").addEventListener("click", () => setError(""));
+      $("delete-history").addEventListener("click", () => deleteSelectedHistory().catch(error => setError(error.message || "删除失败")));
+      $("history-location-button").addEventListener("click", () => showHistoryLocation().catch(error => setError(error.message || "读取位置失败")));
+      $("document-upload").addEventListener("change", (event) => {
+        addDocuments(Array.from(event.target.files || [])).catch(error => setError(error.message || "读取文档失败"));
+        event.target.value = "";
+      });
+      $("toggle-key").addEventListener("click", () => {
+        const input = $("provider-key");
+        input.type = input.type === "password" ? "text" : "password";
+        $("toggle-key").textContent = input.type === "password" ? "显示" : "隐藏";
+      });
+      $("debate-rounds").addEventListener("input", (event) => {
+        const value = Number.parseInt(event.target.value, 10);
+        state.rounds = Number.isFinite(value) ? Math.min(5, Math.max(1, value)) : 3;
+        event.target.value = state.rounds;
+      });
+      $("parallel-first-round").addEventListener("change", (event) => {
+        state.parallelFirstRound = event.target.checked;
+      });
+      renderForm();
+      renderDocuments();
+      loadHistory().catch(() => {});
+    </script>
+  </body>
+</html>

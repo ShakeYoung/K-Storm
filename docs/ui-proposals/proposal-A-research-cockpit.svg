@@ -1,0 +1,110 @@
+<svg width="1600" height="1000" viewBox="0 0 1600 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1000" fill="#F4F7F5"/>
+  <rect x="0" y="0" width="1600" height="84" fill="#FBFCFB"/>
+  <line x1="0" y1="84.5" x2="1600" y2="84.5" stroke="#D8E1DC"/>
+  <rect x="36" y="22" width="42" height="42" rx="10" fill="#123D33"/>
+  <text x="57" y="49" text-anchor="middle" font-size="20" font-family="Arial, sans-serif" font-weight="700" fill="#FFFFFF">K</text>
+  <text x="96" y="40" font-size="28" font-family="Arial, sans-serif" font-weight="700" fill="#15221D">K-Storm</text>
+  <text x="96" y="62" font-size="14" font-family="Arial, sans-serif" fill="#688077">Research Cockpit</text>
+
+  <rect x="1220" y="22" width="132" height="40" rx="20" fill="#E7F1EC" stroke="#C9D8D1"/>
+  <text x="1286" y="47" text-anchor="middle" font-size="15" font-family="Arial, sans-serif" font-weight="700" fill="#1D6D5A">RUNNING</text>
+  <rect x="1368" y="22" width="160" height="40" rx="12" fill="#FFFFFF" stroke="#C8D7D0"/>
+  <text x="1448" y="47" text-anchor="middle" font-size="15" font-family="Arial, sans-serif" font-weight="700" fill="#24332D">模型设置</text>
+
+  <rect x="32" y="112" width="400" height="856" rx="16" fill="#FFFFFF" stroke="#D9E2DD"/>
+  <text x="60" y="154" font-size="24" font-family="Arial, sans-serif" font-weight="700" fill="#18241F">科研头脑风暴模板</text>
+  <text x="60" y="180" font-size="14" font-family="Arial, sans-serif" fill="#6A7E75">固定左栏，按输入结构分段，减少滚动压力</text>
+  <circle cx="360" cy="158" r="34" fill="#F1F6F3" stroke="#D4DFD9"/>
+  <text x="360" y="164" text-anchor="middle" font-size="16" font-family="Arial, sans-serif" font-weight="700" fill="#1D6D5A">78%</text>
+
+  <rect x="56" y="210" width="352" height="180" rx="14" fill="#F9FBFA" stroke="#DCE5E0"/>
+  <text x="78" y="240" font-size="16" font-family="Arial, sans-serif" font-weight="700" fill="#22322C">核心输入</text>
+  <rect x="78" y="262" width="308" height="28" rx="8" fill="#FFFFFF" stroke="#CFDBD5"/>
+  <rect x="78" y="302" width="308" height="56" rx="8" fill="#FFFFFF" stroke="#CFDBD5"/>
+  <text x="94" y="280" font-size="13" font-family="Arial, sans-serif" fill="#70837A">研究领域</text>
+  <text x="94" y="324" font-size="13" font-family="Arial, sans-serif" fill="#70837A">实验背景 / 已有基础</text>
+
+  <rect x="56" y="410" width="352" height="170" rx="14" fill="#F9FBFA" stroke="#DCE5E0"/>
+  <text x="78" y="440" font-size="16" font-family="Arial, sans-serif" font-weight="700" fill="#22322C">补充条件</text>
+  <rect x="78" y="462" width="146" height="84" rx="10" fill="#FFFFFF" stroke="#CFDBD5"/>
+  <rect x="240" y="462" width="146" height="84" rx="10" fill="#FFFFFF" stroke="#CFDBD5"/>
+  <text x="96" y="488" font-size="13" font-family="Arial, sans-serif" fill="#70837A">约束条件</text>
+  <text x="258" y="488" font-size="13" font-family="Arial, sans-serif" fill="#70837A">目标产出</text>
+
+  <rect x="56" y="602" width="352" height="196" rx="14" fill="#F9FBFA" stroke="#DCE5E0"/>
+  <text x="78" y="632" font-size="16" font-family="Arial, sans-serif" font-weight="700" fill="#22322C">文档上传</text>
+  <rect x="78" y="652" width="308" height="48" rx="10" fill="#FFFFFF" stroke="#CFDBD5"/>
+  <rect x="78" y="716" width="308" height="58" rx="10" fill="#FFFFFF" stroke="#CFDBD5"/>
+  <text x="94" y="680" font-size="13" font-family="Arial, sans-serif" fill="#70837A">drag files / 添加注释 / 文档类型</text>
+  <text x="94" y="746" font-size="13" font-family="Arial, sans-serif" fill="#70837A">design-notes.md</text>
+  <rect x="56" y="824" width="352" height="52" rx="12" fill="#123D33"/>
+  <text x="232" y="856" text-anchor="middle" font-size="18" font-family="Arial, sans-serif" font-weight="700" fill="#FFFFFF">开始分析</text>
+
+  <rect x="456" y="112" width="1112" height="220" rx="16" fill="#FFFFFF" stroke="#D9E2DD"/>
+  <text x="484" y="154" font-size="24" font-family="Arial, sans-serif" font-weight="700" fill="#18241F">运行概览</text>
+  <text x="484" y="178" font-size="14" font-family="Arial, sans-serif" fill="#6A7E75">核心指标 + 时间线优先显示，建立状态感</text>
+  <rect x="484" y="204" width="220" height="84" rx="12" fill="#F7FAF8" stroke="#DCE5E0"/>
+  <rect x="720" y="204" width="220" height="84" rx="12" fill="#F7FAF8" stroke="#DCE5E0"/>
+  <rect x="956" y="204" width="220" height="84" rx="12" fill="#F7FAF8" stroke="#DCE5E0"/>
+  <text x="506" y="232" font-size="13" font-family="Arial, sans-serif" fill="#70837A">讨论轮次</text>
+  <text x="506" y="266" font-size="28" font-family="Arial, sans-serif" font-weight="700" fill="#16231E">3</text>
+  <text x="742" y="232" font-size="13" font-family="Arial, sans-serif" fill="#70837A">Agent 发言</text>
+  <text x="742" y="266" font-size="28" font-family="Arial, sans-serif" font-weight="700" fill="#16231E">12</text>
+  <text x="978" y="232" font-size="13" font-family="Arial, sans-serif" fill="#70837A">当前状态</text>
+  <text x="978" y="266" font-size="28" font-family="Arial, sans-serif" font-weight="700" fill="#1D6D5A">RUNNING</text>
+  <line x1="484" y1="304.5" x2="1538" y2="304.5" stroke="#E1E8E4"/>
+  <line x1="526" y1="356" x2="1326" y2="356" stroke="#CFE0D8" stroke-width="4"/>
+  <circle cx="526" cy="356" r="7" fill="#123D33"/>
+  <circle cx="726" cy="356" r="7" fill="#123D33"/>
+  <circle cx="926" cy="356" r="7" fill="#123D33"/>
+  <circle cx="1126" cy="356" r="7" fill="#8DC3B3"/>
+  <circle cx="1326" cy="356" r="7" fill="#D8E2DD"/>
+  <text x="500" y="388" font-size="13" font-family="Arial, sans-serif" fill="#657972">模板校验</text>
+  <text x="698" y="388" font-size="13" font-family="Arial, sans-serif" fill="#657972">Intake</text>
+  <text x="892" y="388" font-size="13" font-family="Arial, sans-serif" fill="#657972">Debate</text>
+  <text x="1086" y="388" font-size="13" font-family="Arial, sans-serif" fill="#657972">IR Summary</text>
+  <text x="1284" y="388" font-size="13" font-family="Arial, sans-serif" fill="#657972">Final Report</text>
+
+  <rect x="456" y="356" width="1112" height="322" rx="16" fill="#FFFFFF" stroke="#D9E2DD"/>
+  <text x="484" y="398" font-size="24" font-family="Arial, sans-serif" font-weight="700" fill="#18241F">讨论过程</text>
+  <text x="484" y="422" font-size="14" font-family="Arial, sans-serif" fill="#6A7E75">Agent 卡片网格，更适合比对观点冲突与互补</text>
+  <rect x="484" y="444" width="150" height="36" rx="18" fill="#123D33"/>
+  <text x="559" y="467" text-anchor="middle" font-size="14" font-family="Arial, sans-serif" font-weight="700" fill="#FFFFFF">第 1 轮</text>
+  <rect x="648" y="444" width="150" height="36" rx="18" fill="#FFFFFF" stroke="#CFDBD5"/>
+  <text x="723" y="467" text-anchor="middle" font-size="14" font-family="Arial, sans-serif" font-weight="700" fill="#42564E">第 2 轮</text>
+  <rect x="812" y="444" width="150" height="36" rx="18" fill="#FFFFFF" stroke="#CFDBD5"/>
+  <text x="887" y="467" text-anchor="middle" font-size="14" font-family="Arial, sans-serif" font-weight="700" fill="#42564E">第 3 轮</text>
+
+  <rect x="484" y="500" width="248" height="146" rx="14" fill="#F8FBFA" stroke="#DCE5E0"/>
+  <rect x="752" y="500" width="248" height="146" rx="14" fill="#F8FBFA" stroke="#DCE5E0"/>
+  <rect x="1020" y="500" width="248" height="146" rx="14" fill="#F8FBFA" stroke="#DCE5E0"/>
+  <rect x="1288" y="500" width="248" height="146" rx="14" fill="#F8FBFA" stroke="#DCE5E0"/>
+  <rect x="484" y="500" width="6" height="146" rx="3" fill="#1D6D5A"/>
+  <rect x="752" y="500" width="6" height="146" rx="3" fill="#C78844"/>
+  <rect x="1020" y="500" width="6" height="146" rx="3" fill="#5577D1"/>
+  <rect x="1288" y="500" width="6" height="146" rx="3" fill="#8D5ACF"/>
+  <text x="506" y="532" font-size="16" font-family="Arial, sans-serif" font-weight="700" fill="#1F2E28">Novelty Agent</text>
+  <text x="774" y="532" font-size="16" font-family="Arial, sans-serif" font-weight="700" fill="#1F2E28">Mechanism Agent</text>
+  <text x="1042" y="532" font-size="16" font-family="Arial, sans-serif" font-weight="700" fill="#1F2E28">Feasibility Agent</text>
+  <text x="1310" y="532" font-size="16" font-family="Arial, sans-serif" font-weight="700" fill="#1F2E28">Reviewer Agent</text>
+
+  <rect x="456" y="702" width="1112" height="266" rx="16" fill="#FFFFFF" stroke="#D9E2DD"/>
+  <text x="484" y="744" font-size="24" font-family="Arial, sans-serif" font-weight="700" fill="#18241F">结构化输出</text>
+  <text x="484" y="768" font-size="14" font-family="Arial, sans-serif" fill="#6A7E75">IR、最终报告、历史记录切 Tab，避免右侧内容过长</text>
+  <rect x="484" y="790" width="128" height="36" rx="18" fill="#123D33"/>
+  <text x="548" y="813" text-anchor="middle" font-size="14" font-family="Arial, sans-serif" font-weight="700" fill="#FFFFFF">最终报告</text>
+  <rect x="624" y="790" width="128" height="36" rx="18" fill="#FFFFFF" stroke="#CFDBD5"/>
+  <text x="688" y="813" text-anchor="middle" font-size="14" font-family="Arial, sans-serif" font-weight="700" fill="#42564E">Structured IR</text>
+  <rect x="764" y="790" width="128" height="36" rx="18" fill="#FFFFFF" stroke="#CFDBD5"/>
+  <text x="828" y="813" text-anchor="middle" font-size="14" font-family="Arial, sans-serif" font-weight="700" fill="#42564E">历史记录</text>
+  <rect x="484" y="844" width="810" height="92" rx="12" fill="#F8FBFA" stroke="#DCE5E0"/>
+  <text x="508" y="874" font-size="14" font-family="Arial, sans-serif" fill="#4B5F57">Markdown 报告预览区域</text>
+  <text x="508" y="902" font-size="13" font-family="Arial, sans-serif" fill="#7A8B84">研究问题、机制假说、实验路径、风险点、产出建议...</text>
+  <rect x="1316" y="844" width="220" height="42" rx="10" fill="#FFFFFF" stroke="#CFDBD5"/>
+  <rect x="1316" y="894" width="220" height="42" rx="10" fill="#FFFFFF" stroke="#CFDBD5"/>
+  <text x="1426" y="870" text-anchor="middle" font-size="14" font-family="Arial, sans-serif" font-weight="700" fill="#324740">导出 Markdown</text>
+  <text x="1426" y="920" text-anchor="middle" font-size="14" font-family="Arial, sans-serif" font-weight="700" fill="#324740">导出 Bundle</text>
+
+  <text x="32" y="994" font-size="13" font-family="Arial, sans-serif" fill="#6B7E76">Proposal A · Research Cockpit · 适合保留当前双栏结构并做中等强度重构</text>
+</svg>
