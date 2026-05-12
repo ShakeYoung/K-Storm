@@ -1,231 +1,208 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1470" viewBox="0 0 1600 980" font-family="Arial, Helvetica, 'Segoe UI', sans-serif" shape-rendering="geometricPrecision" text-rendering="optimizeLegibility">
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1600" viewBox="0 0 1200 800" font-family="Arial, Helvetica, 'Segoe UI', sans-serif" shape-rendering="geometricPrecision" text-rendering="optimizeLegibility">
   <defs>
-    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="130%">
-      <feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#0F172A" flood-opacity="0.12"/>
+    <filter id="shadow" x="-12%" y="-12%" width="124%" height="135%">
+      <feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#0F172A" flood-opacity="0.13"/>
     </filter>
     <radialGradient id="halo" cx="50%" cy="50%" r="60%">
-      <stop offset="0%" stop-color="#D8E9FF" stop-opacity="0.75"/>
-      <stop offset="55%" stop-color="#EAF4FF" stop-opacity="0.28"/>
+      <stop offset="0%" stop-color="#DCEBFF" stop-opacity="0.9"/>
+      <stop offset="58%" stop-color="#F0F7FF" stop-opacity="0.38"/>
       <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="blueSoft" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#F5FAFF"/><stop offset="100%" stop-color="#E8F2FF"/>
+      <stop offset="0%" stop-color="#F4FAFF"/><stop offset="100%" stop-color="#E6F1FF"/>
     </linearGradient>
     <linearGradient id="greenSoft" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#F5FFF9"/><stop offset="100%" stop-color="#E8F8EF"/>
+      <stop offset="0%" stop-color="#F4FFF8"/><stop offset="100%" stop-color="#E6F7EE"/>
     </linearGradient>
     <linearGradient id="purpleSoft" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#FCF7FF"/><stop offset="100%" stop-color="#F1E8FF"/>
+      <stop offset="0%" stop-color="#FCF7FF"/><stop offset="100%" stop-color="#F0E6FF"/>
     </linearGradient>
     <linearGradient id="orangeSoft" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#FFF9F0"/><stop offset="100%" stop-color="#FFEDCF"/>
+      <stop offset="0%" stop-color="#FFF9F1"/><stop offset="100%" stop-color="#FFECCB"/>
     </linearGradient>
     <linearGradient id="coreGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#EAF4FF"/><stop offset="100%" stop-color="#FFF6E8"/>
+      <stop offset="0%" stop-color="#E7F2FF"/><stop offset="100%" stop-color="#FFF4DF"/>
     </linearGradient>
-    <linearGradient id="strokeBlue" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#4F7FD9"/><stop offset="100%" stop-color="#21B7C8"/>
+    <linearGradient id="barBlue" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3F7EE8"/><stop offset="100%" stop-color="#16B8C5"/>
     </linearGradient>
-    <marker id="arrowBlue" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="6" orient="auto">
-      <path d="M0 0L10 4L0 8Z" fill="#4F7FD9"/>
-    </marker>
-    <marker id="arrowDark" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="6" orient="auto">
-      <path d="M0 0L10 4L0 8Z" fill="#253041"/>
-    </marker>
-    <marker id="arrowGreen" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="6" orient="auto">
-      <path d="M0 0L10 4L0 8Z" fill="#2E9A55"/>
-    </marker>
-    <marker id="arrowPurple" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="6" orient="auto">
-      <path d="M0 0L10 4L0 8Z" fill="#9B5CD6"/>
-    </marker>
+    <marker id="arrowBlue" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="6" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#3F7EE8"/></marker>
+    <marker id="arrowDark" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="6" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#1F2937"/></marker>
+    <marker id="arrowGreen" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="6" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#239553"/></marker>
+    <marker id="arrowPurple" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="6" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#9656D5"/></marker>
     <style>
-      .title { font-size: 32px; font-weight: 900; fill: #0F172A; letter-spacing: 0.5px; }
-      .subtitle { font-size: 13px; font-weight: 700; fill: #5F6B7A; letter-spacing: 1.4px; }
-      .section { font-size: 19px; font-weight: 850; fill: #111827; letter-spacing: 0.1px; }
-      .sectionSmall { font-size: 11.5px; font-weight: 700; fill: #5F6B7A; letter-spacing: 0.5px; }
-      .nodeTitle { font-size: 14.2px; font-weight: 850; fill: #111827; }
-      .nodeSub { font-size: 11px; font-weight: 650; fill: #566274; }
-      .body { font-size: 13px; font-weight: 650; fill: #253041; }
-      .bodySmall { font-size: 12.5px; font-weight: 650; fill: #344054; }
-      .tiny { font-size: 10.5px; font-weight: 650; fill: #687589; }
-      .blueFlow { stroke: #4F7FD9; stroke-width: 2.2; fill: none; marker-end: url(#arrowBlue); }
-      .darkFlow { stroke: #253041; stroke-width: 2.2; fill: none; marker-end: url(#arrowDark); }
-      .greenFlow { stroke: #2E9A55; stroke-width: 2.2; fill: none; marker-end: url(#arrowGreen); }
-      .purpleFlow { stroke: #9B5CD6; stroke-width: 2.2; fill: none; marker-end: url(#arrowPurple); }
-      .dashFlow { stroke: #6A8FE8; stroke-width: 2.2; fill: none; stroke-dasharray: 9 7; marker-end: url(#arrowBlue); }
+      .title { font-size: 34px; font-weight: 900; fill: #0F172A; letter-spacing: .3px; }
+      .subtitle { font-size: 14px; font-weight: 800; fill: #5B6678; letter-spacing: 1.2px; }
+      .section { font-size: 22px; font-weight: 900; fill: #111827; }
+      .sectionSub { font-size: 13px; font-weight: 800; fill: #667085; letter-spacing: .7px; }
+      .node { font-size: 18px; font-weight: 900; fill: #111827; }
+      .nodeSub { font-size: 14px; font-weight: 750; fill: #596579; }
+      .body { font-size: 16px; font-weight: 800; fill: #253041; }
+      .bodySmall { font-size: 14.5px; font-weight: 800; fill: #344054; }
+      .tiny { font-size: 12px; font-weight: 750; fill: #687589; }
+      .blueFlow { stroke: #3F7EE8; stroke-width: 2.6; fill: none; marker-end: url(#arrowBlue); }
+      .darkFlow { stroke: #1F2937; stroke-width: 2.5; fill: none; marker-end: url(#arrowDark); }
+      .greenFlow { stroke: #239553; stroke-width: 2.6; fill: none; marker-end: url(#arrowGreen); }
+      .purpleFlow { stroke: #9656D5; stroke-width: 2.4; fill: none; marker-end: url(#arrowPurple); }
+      .dashFlow { stroke: #5F8BE8; stroke-width: 2.4; fill: none; stroke-dasharray: 8 6; marker-end: url(#arrowBlue); }
     </style>
   </defs>
 
-  <rect width="1600" height="980" fill="#FFFFFF"/>
-  <circle cx="800" cy="510" r="420" fill="url(#halo)"/>
-  <path d="M90 118H1510" stroke="#E8EDF5" stroke-width="1.4"/>
+  <rect width="1200" height="800" fill="#FFFFFF"/>
+  <circle cx="600" cy="405" r="340" fill="url(#halo)"/>
 
   <!-- Header -->
-  <text x="800" y="52" text-anchor="middle" class="title">K-Storm Architecture</text>
-  <text x="800" y="80" text-anchor="middle" class="subtitle">LOCAL-FIRST MULTI-AGENT RESEARCH BRAINSTORMING SYSTEM</text>
+  <text x="600" y="48" text-anchor="middle" class="title">K-Storm Architecture</text>
+  <text x="600" y="74" text-anchor="middle" class="subtitle">LOCAL-FIRST MULTI-AGENT RESEARCH BRAINSTORMING</text>
+  <line x1="55" y1="98" x2="1145" y2="98" stroke="#E7ECF3" stroke-width="1.4"/>
 
-  <!-- LEFT COLUMN: exact bottom aligned with center/right at y=912 -->
-  <g filter="url(#cardShadow)">
-    <rect x="70" y="156" width="315" height="240" rx="18" fill="url(#blueSoft)" stroke="#8FB4EA" stroke-width="2"/>
-    <rect x="70" y="156" width="315" height="5" rx="2.5" fill="url(#strokeBlue)"/>
-    <text x="228" y="198" text-anchor="middle" class="section">Research Console</text>
-    <text x="228" y="222" text-anchor="middle" class="sectionSmall">REACT + VITE FRONTEND</text>
+  <!-- Left column -->
+  <g filter="url(#shadow)">
+    <rect x="55" y="125" width="250" height="210" rx="18" fill="url(#blueSoft)" stroke="#8FB4EA" stroke-width="2.2"/>
+    <rect x="55" y="125" width="250" height="6" rx="3" fill="url(#barBlue)"/>
+    <text x="180" y="166" text-anchor="middle" class="section">Research Console</text>
+    <text x="180" y="190" text-anchor="middle" class="sectionSub">REACT + VITE</text>
 
-    <rect x="188" y="236" width="80" height="44" rx="8" fill="#FFFFFF" stroke="#7FA7E8" stroke-width="1.6"/>
-    <line x1="202" y1="250" x2="254" y2="250" stroke="#4F7FD9" stroke-width="2.4" opacity="0.55"/>
-    <line x1="202" y1="263" x2="240" y2="263" stroke="#4F7FD9" stroke-width="2.2" opacity="0.35"/>
-    <line x1="216" y1="288" x2="240" y2="288" stroke="#4F7FD9" stroke-width="2.2"/>
+    <rect x="140" y="208" width="80" height="44" rx="8" fill="#FFFFFF" stroke="#7FA7E8" stroke-width="1.8"/>
+    <line x1="154" y1="222" x2="206" y2="222" stroke="#3F7EE8" stroke-width="2.7" opacity=".58"/>
+    <line x1="154" y1="236" x2="194" y2="236" stroke="#3F7EE8" stroke-width="2.4" opacity=".38"/>
+    <line x1="168" y1="260" x2="192" y2="260" stroke="#3F7EE8" stroke-width="2.4"/>
 
-    <rect x="100" y="306" width="255" height="38" rx="10" fill="#FFFFFF" stroke="#AFC8EF" stroke-width="1.5"/>
-    <text x="228" y="330" text-anchor="middle" class="body">Template Form</text>
-
-    <rect x="100" y="354" width="255" height="38" rx="10" fill="#FFFFFF" stroke="#AFC8EF" stroke-width="1.5"/>
-    <text x="228" y="378" text-anchor="middle" class="body">Documents / Notes</text>
+    <rect x="82" y="276" width="196" height="38" rx="10" fill="#FFFFFF" stroke="#AFC8EF" stroke-width="1.6"/>
+    <text x="180" y="300" text-anchor="middle" class="body">Template + Docs</text>
   </g>
 
-  <g filter="url(#cardShadow)">
-    <rect x="70" y="442" width="315" height="200" rx="18" fill="#FBFCFF" stroke="#D5DAE2" stroke-width="2"/>
-    <rect x="70" y="442" width="315" height="5" rx="2.5" fill="#A7B0BF"/>
-    <text x="228" y="482" text-anchor="middle" class="section">Workspace Views</text>
-    <rect x="102" y="512" width="252" height="32" rx="8" fill="#F6F8FB" stroke="#E1E6EF"/>
-    <text x="228" y="533" text-anchor="middle" class="bodySmall">New Discussion</text>
-    <rect x="102" y="552" width="252" height="32" rx="8" fill="#F6F8FB" stroke="#E1E6EF"/>
-    <text x="228" y="573" text-anchor="middle" class="bodySmall">Debate Floor</text>
-    <rect x="102" y="592" width="252" height="32" rx="8" fill="#F6F8FB" stroke="#E1E6EF"/>
-    <text x="228" y="613" text-anchor="middle" class="bodySmall">Reports / History / Refs</text>
+  <g filter="url(#shadow)">
+    <rect x="55" y="380" width="250" height="160" rx="18" fill="#FBFCFF" stroke="#D5DAE2" stroke-width="2.2"/>
+    <rect x="55" y="380" width="250" height="6" rx="3" fill="#A7B0BF"/>
+    <text x="180" y="422" text-anchor="middle" class="section">Workspace</text>
+    <rect x="82" y="448" width="196" height="32" rx="8" fill="#F6F8FB" stroke="#E1E6EF"/>
+    <text x="180" y="469" text-anchor="middle" class="bodySmall">New Discussion</text>
+    <rect x="82" y="490" width="196" height="32" rx="8" fill="#F6F8FB" stroke="#E1E6EF"/>
+    <text x="180" y="511" text-anchor="middle" class="bodySmall">Debate / Report</text>
   </g>
 
-  <g filter="url(#cardShadow)">
-    <rect x="70" y="706" width="315" height="206" rx="18" fill="url(#purpleSoft)" stroke="#D3C3F5" stroke-width="2"/>
-    <rect x="70" y="706" width="315" height="5" rx="2.5" fill="#9B5CD6"/>
-    <text x="228" y="748" text-anchor="middle" class="section">Model Providers</text>
-    <rect x="100" y="778" width="255" height="28" rx="7" fill="#FFFFFF" opacity="0.78"/>
-    <text x="228" y="797" text-anchor="middle" class="bodySmall">OpenAI Compatible</text>
-    <rect x="100" y="814" width="255" height="28" rx="7" fill="#FFFFFF" opacity="0.78"/>
-    <text x="228" y="833" text-anchor="middle" class="bodySmall">Anthropic Messages</text>
-    <rect x="100" y="850" width="255" height="28" rx="7" fill="#FFFFFF" opacity="0.78"/>
-    <text x="228" y="869" text-anchor="middle" class="bodySmall">OpenAI Responses</text>
-    <rect x="100" y="886" width="255" height="18" rx="6" fill="#FFFFFF" opacity="0.78"/>
-    <text x="228" y="900" text-anchor="middle" class="tiny">Local Mock Provider</text>
+  <g filter="url(#shadow)">
+    <rect x="55" y="590" width="250" height="150" rx="18" fill="url(#purpleSoft)" stroke="#D3C3F5" stroke-width="2.2"/>
+    <rect x="55" y="590" width="250" height="6" rx="3" fill="#9656D5"/>
+    <text x="180" y="632" text-anchor="middle" class="section">Providers</text>
+    <text x="180" y="666" text-anchor="middle" class="bodySmall">OpenAI Compatible</text>
+    <text x="180" y="694" text-anchor="middle" class="bodySmall">Anthropic / Responses</text>
+    <text x="180" y="722" text-anchor="middle" class="bodySmall">Local Mock</text>
   </g>
 
-  <!-- CENTER TOP: Orchestration Core -->
-  <g filter="url(#cardShadow)">
-    <rect x="500" y="156" width="600" height="222" rx="20" fill="#FFFFFF" stroke="#CDD5E1" stroke-width="2"/>
-    <rect x="500" y="156" width="600" height="5" rx="2.5" fill="url(#strokeBlue)"/>
-    <text x="800" y="198" text-anchor="middle" class="section">Orchestration Core</text>
-    <text x="800" y="222" text-anchor="middle" class="sectionSmall">FASTAPI · STATE MACHINE · MODEL ROUTING</text>
+  <!-- Center top -->
+  <g filter="url(#shadow)">
+    <rect x="375" y="125" width="450" height="190" rx="20" fill="#FFFFFF" stroke="#CDD5E1" stroke-width="2.2"/>
+    <rect x="375" y="125" width="450" height="6" rx="3" fill="url(#barBlue)"/>
+    <text x="600" y="166" text-anchor="middle" class="section">Orchestration Core</text>
+    <text x="600" y="190" text-anchor="middle" class="sectionSub">FASTAPI · STATE MACHINE · ROUTER</text>
 
-    <rect x="535" y="266" width="160" height="54" rx="12" fill="url(#greenSoft)" stroke="#A8D79A" stroke-width="1.8"/>
-    <text x="615" y="291" text-anchor="middle" class="nodeTitle">API Layer</text>
-    <text x="615" y="309" text-anchor="middle" class="nodeSub">runs / history</text>
+    <rect x="398" y="232" width="124" height="52" rx="12" fill="url(#greenSoft)" stroke="#A8D79A" stroke-width="1.8"/>
+    <text x="460" y="255" text-anchor="middle" class="node">API</text>
+    <text x="460" y="275" text-anchor="middle" class="nodeSub">runs</text>
 
-    <rect x="720" y="266" width="160" height="54" rx="12" fill="url(#orangeSoft)" stroke="#F0B46D" stroke-width="1.8"/>
-    <text x="800" y="291" text-anchor="middle" class="nodeTitle">Run Scheduler</text>
-    <text x="800" y="309" text-anchor="middle" class="nodeSub">state machine</text>
+    <rect x="538" y="232" width="124" height="52" rx="12" fill="url(#orangeSoft)" stroke="#F0B46D" stroke-width="1.8"/>
+    <text x="600" y="255" text-anchor="middle" class="node">Scheduler</text>
+    <text x="600" y="275" text-anchor="middle" class="nodeSub">state</text>
 
-    <rect x="905" y="266" width="160" height="54" rx="12" fill="url(#purpleSoft)" stroke="#C68BE2" stroke-width="1.8"/>
-    <text x="985" y="291" text-anchor="middle" class="nodeTitle">Model Router</text>
-    <text x="985" y="309" text-anchor="middle" class="nodeSub">per-agent</text>
-
-    <path d="M615 320V346H800V320" stroke="#A7B0BF" stroke-width="1.6" fill="none"/>
-    <path d="M985 320V346H800" stroke="#A7B0BF" stroke-width="1.6" fill="none"/>
+    <rect x="678" y="232" width="124" height="52" rx="12" fill="url(#purpleSoft)" stroke="#C68BE2" stroke-width="1.8"/>
+    <text x="740" y="255" text-anchor="middle" class="node">Router</text>
+    <text x="740" y="275" text-anchor="middle" class="nodeSub">model</text>
   </g>
 
-  <!-- MAIN: Agent Deliberation Ring -->
-  <g filter="url(#cardShadow)">
-    <rect x="455" y="448" width="690" height="300" rx="20" fill="#FFFFFF" stroke="#CDD5E1" stroke-width="2"/>
-    <rect x="455" y="448" width="690" height="5" rx="2.5" fill="#F0B46D"/>
-    <text x="800" y="490" text-anchor="middle" class="section">Agent Deliberation Ring</text>
-    <text x="800" y="514" text-anchor="middle" class="sectionSmall">PARALLEL FIRST ROUND · SERIAL REFINEMENT · COMPACT IR</text>
+  <!-- Center main -->
+  <g filter="url(#shadow)">
+    <rect x="345" y="380" width="510" height="245" rx="20" fill="#FFFFFF" stroke="#CDD5E1" stroke-width="2.2"/>
+    <rect x="345" y="380" width="510" height="6" rx="3" fill="#F0B46D"/>
+    <text x="600" y="422" text-anchor="middle" class="section">Agent Deliberation Ring</text>
+    <text x="600" y="446" text-anchor="middle" class="sectionSub">PARALLEL ROUND · SERIAL REFINE · IR</text>
 
-    <circle cx="800" cy="612" r="66" fill="url(#coreGrad)" stroke="#F0B46D" stroke-width="2.2"/>
-    <circle cx="800" cy="612" r="46" fill="#FFFFFF" stroke="#F2CC8D" stroke-width="1.4"/>
-    <text x="800" y="608" text-anchor="middle" class="nodeTitle">Debate</text>
-    <text x="800" y="628" text-anchor="middle" class="nodeTitle">Core</text>
+    <circle cx="600" cy="522" r="58" fill="url(#coreGrad)" stroke="#F0B46D" stroke-width="2.4"/>
+    <circle cx="600" cy="522" r="39" fill="#FFFFFF" stroke="#F2CC8D" stroke-width="1.4"/>
+    <text x="600" y="518" text-anchor="middle" class="node">Debate</text>
+    <text x="600" y="538" text-anchor="middle" class="node">Core</text>
 
-    <rect x="500" y="540" width="188" height="62" rx="13" fill="url(#blueSoft)" stroke="#93B6EA" stroke-width="2"/>
-    <text x="594" y="567" text-anchor="middle" class="nodeTitle">Novelty Agent</text>
-    <text x="594" y="587" text-anchor="middle" class="nodeSub">new directions</text>
+    <rect x="374" y="470" width="142" height="56" rx="13" fill="url(#blueSoft)" stroke="#93B6EA" stroke-width="2"/>
+    <text x="445" y="494" text-anchor="middle" class="node">Novelty</text>
+    <text x="445" y="514" text-anchor="middle" class="nodeSub">directions</text>
 
-    <rect x="912" y="540" width="188" height="62" rx="13" fill="url(#purpleSoft)" stroke="#C68BE2" stroke-width="2"/>
-    <text x="1006" y="567" text-anchor="middle" class="nodeTitle">Mechanism Agent</text>
-    <text x="1006" y="587" text-anchor="middle" class="nodeSub">causal chain</text>
+    <rect x="684" y="470" width="142" height="56" rx="13" fill="url(#purpleSoft)" stroke="#C68BE2" stroke-width="2"/>
+    <text x="755" y="494" text-anchor="middle" class="node">Mechanism</text>
+    <text x="755" y="514" text-anchor="middle" class="nodeSub">causal chain</text>
 
-    <rect x="500" y="648" width="188" height="62" rx="13" fill="url(#greenSoft)" stroke="#A8D79A" stroke-width="2"/>
-    <text x="594" y="675" text-anchor="middle" class="nodeTitle">Feasibility Agent</text>
-    <text x="594" y="695" text-anchor="middle" class="nodeSub">experiment cost</text>
+    <rect x="374" y="552" width="142" height="56" rx="13" fill="url(#greenSoft)" stroke="#A8D79A" stroke-width="2"/>
+    <text x="445" y="576" text-anchor="middle" class="node">Feasibility</text>
+    <text x="445" y="596" text-anchor="middle" class="nodeSub">cost</text>
 
-    <rect x="912" y="648" width="188" height="62" rx="13" fill="url(#orangeSoft)" stroke="#F0B46D" stroke-width="2"/>
-    <text x="1006" y="675" text-anchor="middle" class="nodeTitle">Reviewer Agent</text>
-    <text x="1006" y="695" text-anchor="middle" class="nodeSub">critique / risk</text>
+    <rect x="684" y="552" width="142" height="56" rx="13" fill="url(#orangeSoft)" stroke="#F0B46D" stroke-width="2"/>
+    <text x="755" y="576" text-anchor="middle" class="node">Reviewer</text>
+    <text x="755" y="596" text-anchor="middle" class="nodeSub">risk</text>
 
-    <path d="M688 571C724 550 758 542 800 548C842 542 876 550 912 571" stroke="#A7B0BF" stroke-width="1.5" fill="none"/>
-    <path d="M688 679C724 700 758 708 800 700C842 708 876 700 912 679" stroke="#A7B0BF" stroke-width="1.5" fill="none"/>
-    <line x1="688" y1="571" x2="740" y2="596" stroke="#A7B0BF" stroke-width="1.5"/>
-    <line x1="912" y1="571" x2="860" y2="596" stroke="#A7B0BF" stroke-width="1.5"/>
-    <line x1="688" y1="679" x2="740" y2="628" stroke="#A7B0BF" stroke-width="1.5"/>
-    <line x1="912" y1="679" x2="860" y2="628" stroke="#A7B0BF" stroke-width="1.5"/>
+    <path d="M516 498C545 479 570 473 600 477C630 473 655 479 684 498" stroke="#A7B0BF" stroke-width="1.5" fill="none"/>
+    <path d="M516 580C545 599 570 605 600 599C630 605 655 599 684 580" stroke="#A7B0BF" stroke-width="1.5" fill="none"/>
+    <line x1="516" y1="498" x2="558" y2="512" stroke="#A7B0BF" stroke-width="1.5"/>
+    <line x1="684" y1="498" x2="642" y2="512" stroke="#A7B0BF" stroke-width="1.5"/>
+    <line x1="516" y1="580" x2="558" y2="536" stroke="#A7B0BF" stroke-width="1.5"/>
+    <line x1="684" y1="580" x2="642" y2="536" stroke="#A7B0BF" stroke-width="1.5"/>
   </g>
 
-  <!-- RIGHT COLUMN: bottom aligned at y=912 -->
-  <g filter="url(#cardShadow)">
-    <rect x="1220" y="156" width="310" height="756" rx="20" fill="#FFF8FC" stroke="#D77BD5" stroke-width="2"/>
-    <rect x="1220" y="156" width="310" height="5" rx="2.5" fill="#C85BD4"/>
-    <text x="1375" y="198" text-anchor="middle" class="section">Artifact Pipeline</text>
-    <text x="1375" y="222" text-anchor="middle" class="sectionSmall">DISCUSSION → REPORT</text>
+  <!-- Right column -->
+  <g filter="url(#shadow)">
+    <rect x="915" y="125" width="230" height="615" rx="20" fill="#FFF8FC" stroke="#D77BD5" stroke-width="2.2"/>
+    <rect x="915" y="125" width="230" height="6" rx="3" fill="#C85BD4"/>
+    <text x="1030" y="166" text-anchor="middle" class="section">Artifact Pipeline</text>
+    <text x="1030" y="190" text-anchor="middle" class="sectionSub">DISCUSSION → REPORT</text>
 
-    <rect x="1255" y="290" width="240" height="50" rx="11" fill="#FFFFFF" stroke="#1F2937" stroke-width="1.8"/>
-    <text x="1375" y="321" text-anchor="middle" class="body">Moderator Summary</text>
+    <rect x="945" y="245" width="170" height="46" rx="11" fill="#FFFFFF" stroke="#1F2937" stroke-width="1.9"/>
+    <text x="1030" y="274" text-anchor="middle" class="body">Moderator</text>
 
-    <rect x="1255" y="382" width="240" height="50" rx="11" fill="#F3E8FF" stroke="#C68BE2" stroke-width="1.8"/>
-    <text x="1375" y="413" text-anchor="middle" class="body">IR Summaries</text>
+    <rect x="945" y="327" width="170" height="46" rx="11" fill="#F3E8FF" stroke="#C68BE2" stroke-width="1.9"/>
+    <text x="1030" y="356" text-anchor="middle" class="body">IR Summary</text>
 
-    <rect x="1255" y="474" width="240" height="70" rx="11" fill="#FFFFFF" stroke="#1F2937" stroke-width="1.8"/>
-    <text x="1375" y="503" text-anchor="middle" class="body">Structured IR</text>
-    <text x="1375" y="525" text-anchor="middle" class="tiny">consensus · conflict · evidence</text>
+    <rect x="945" y="409" width="170" height="62" rx="11" fill="#FFFFFF" stroke="#1F2937" stroke-width="1.9"/>
+    <text x="1030" y="435" text-anchor="middle" class="body">Structured IR</text>
+    <text x="1030" y="456" text-anchor="middle" class="tiny">evidence · conflict</text>
 
-    <rect x="1255" y="592" width="240" height="50" rx="11" fill="#FFEBCB" stroke="#F0B46D" stroke-width="1.8"/>
-    <text x="1375" y="623" text-anchor="middle" class="body">Evidence Check</text>
+    <rect x="945" y="514" width="170" height="46" rx="11" fill="#FFEBCB" stroke="#F0B46D" stroke-width="1.9"/>
+    <text x="1030" y="543" text-anchor="middle" class="body">Evidence Check</text>
 
-    <rect x="1255" y="684" width="240" height="50" rx="11" fill="#F3E8FF" stroke="#C68BE2" stroke-width="1.8"/>
-    <text x="1375" y="715" text-anchor="middle" class="body">Output Agent</text>
+    <rect x="945" y="596" width="170" height="46" rx="11" fill="#F3E8FF" stroke="#C68BE2" stroke-width="1.9"/>
+    <text x="1030" y="625" text-anchor="middle" class="body">Output Agent</text>
 
-    <rect x="1255" y="778" width="240" height="58" rx="11" fill="#FFFFFF" stroke="#1F2937" stroke-width="1.8"/>
-    <text x="1375" y="813" text-anchor="middle" class="nodeTitle">Markdown Report</text>
+    <rect x="945" y="678" width="170" height="50" rx="11" fill="#FFFFFF" stroke="#1F2937" stroke-width="1.9"/>
+    <text x="1030" y="709" text-anchor="middle" class="node">Markdown</text>
 
-    <line x1="1375" y1="340" x2="1375" y2="382" class="purpleFlow"/>
-    <line x1="1375" y1="432" x2="1375" y2="474" class="purpleFlow"/>
-    <line x1="1375" y1="544" x2="1375" y2="592" class="purpleFlow"/>
-    <line x1="1375" y1="642" x2="1375" y2="684" class="purpleFlow"/>
-    <line x1="1375" y1="734" x2="1375" y2="778" class="purpleFlow"/>
+    <line x1="1030" y1="291" x2="1030" y2="327" class="purpleFlow"/>
+    <line x1="1030" y1="373" x2="1030" y2="409" class="purpleFlow"/>
+    <line x1="1030" y1="471" x2="1030" y2="514" class="purpleFlow"/>
+    <line x1="1030" y1="560" x2="1030" y2="596" class="purpleFlow"/>
+    <line x1="1030" y1="642" x2="1030" y2="678" class="purpleFlow"/>
   </g>
 
-  <!-- CENTER BOTTOM: bottom aligned at y=912 -->
-  <g filter="url(#cardShadow)">
-    <rect x="455" y="802" width="690" height="110" rx="18" fill="#F9FAFB" stroke="#D5DAE2" stroke-width="2"/>
-    <rect x="455" y="802" width="690" height="5" rx="2.5" fill="#2E9A55"/>
-    <text x="510" y="840" class="section">Local Persistence</text>
-    <text x="510" y="868" class="body">SQLite stores run history, timeline, debate messages, IR, reports and references.</text>
-    <text x="510" y="895" class="tiny">API keys stay in browser localStorage and are not written to SQLite.</text>
+  <!-- Bottom persistence -->
+  <g filter="url(#shadow)">
+    <rect x="345" y="660" width="510" height="80" rx="18" fill="#F9FAFB" stroke="#D5DAE2" stroke-width="2.2"/>
+    <rect x="345" y="660" width="510" height="6" rx="3" fill="#239553"/>
+    <text x="378" y="696" class="section">Local Persistence</text>
+    <text x="378" y="723" class="bodySmall">SQLite: history · messages · IR · report · refs</text>
   </g>
 
-  <!-- Data/control arrows -->
-  <path d="M385 278H500" class="blueFlow"/>
-  <path d="M800 378V448" class="darkFlow"/>
-  <path d="M1145 598H1220" class="blueFlow"/>
-  <path d="M800 748V802" class="greenFlow"/>
-  <path d="M385 795H455" class="dashFlow"/>
-  <path d="M1100 276H1200V315H1255" class="dashFlow"/>
-  <path d="M385 544H455" stroke="#CBD5E1" stroke-width="2" fill="none" marker-end="url(#arrowDark)"/>
+  <!-- Arrows -->
+  <path d="M305 230H375" class="blueFlow"/>
+  <path d="M600 315V380" class="darkFlow"/>
+  <path d="M855 505H915" class="blueFlow"/>
+  <path d="M600 625V660" class="greenFlow"/>
+  <path d="M305 665H345" class="dashFlow"/>
+  <path d="M825 245H890V268H945" class="dashFlow"/>
+  <path d="M305 460H345" stroke="#CBD5E1" stroke-width="2.2" fill="none" marker-end="url(#arrowDark)"/>
 
-  <!-- route labels -->
-  <rect x="412" y="258" width="52" height="24" rx="6" fill="#FFFFFF" opacity="0.96"/>
-  <text x="438" y="274" text-anchor="middle" class="tiny">input</text>
-  <rect x="1162" y="578" width="48" height="24" rx="6" fill="#FFFFFF" opacity="0.96"/>
-  <text x="1186" y="594" text-anchor="middle" class="tiny">IR</text>
-  <rect x="808" y="770" width="78" height="24" rx="6" fill="#FFFFFF" opacity="0.96"/>
-  <text x="847" y="786" text-anchor="middle" class="tiny">persist</text>
+  <rect x="320" y="210" width="42" height="24" rx="6" fill="#FFFFFF" opacity=".96"/>
+  <text x="341" y="227" text-anchor="middle" class="tiny">input</text>
+  <rect x="868" y="485" width="34" height="24" rx="6" fill="#FFFFFF" opacity=".96"/>
+  <text x="885" y="502" text-anchor="middle" class="tiny">IR</text>
+  <rect x="610" y="632" width="58" height="24" rx="6" fill="#FFFFFF" opacity=".96"/>
+  <text x="639" y="649" text-anchor="middle" class="tiny">persist</text>
 
-  <text x="800" y="952" text-anchor="middle" class="tiny">K-Storm v1.6 · Local-first research topic brainstorming · MIT License</text>
+  <text x="600" y="778" text-anchor="middle" class="tiny">K-Storm v1.6 · Local-first research brainstorming · MIT License</text>
 </svg>

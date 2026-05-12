@@ -60,7 +60,7 @@ K-Storm is organized as a local research orchestration system: the React console
 - **Reviewer Agent** — simulates peer-review criticism and exposes weak points
 
 <div align="center">
-<img src="assets/k-storm-architecture.svg" alt="K-Storm Architecture" width="100%">
+<img src="assets/k-storm-architecture.svg" alt="K-Storm Architecture" width="1400">
 </div>
 
 <details>

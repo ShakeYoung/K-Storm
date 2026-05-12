@@ -67,7 +67,7 @@ K-Storm 的核心是一个本地运行的研究编排系统：React 控制台负
 - **Reviewer Agent**：模拟审稿质疑，暴露风险与薄弱环节
 
 <div align="center">
-<img src="assets/k-storm-architecture.svg" alt="K-Storm Architecture" width="100%">
+<img src="assets/k-storm-architecture.svg" alt="K-Storm Architecture" width="1400">
 </div>
 
 完整架构文档见 [docs/ARCHITECTURE.zh-CN.md](docs/ARCHITECTURE.zh-CN.md)，包含运行流程时序图、后端模块图、数据流图和 Agent 编排结构。
