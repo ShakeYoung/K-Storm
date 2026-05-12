@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/k-storm-icon.svg" width="160" alt="K-Storm logo">
+</p>
+
 # K-Storm
 
 A local multi-agent research topic brainstorming tool. It turns your research background template and uploaded documents into a structured briefing, runs a controlled multi-agent discussion, and produces a Markdown topic selection report.

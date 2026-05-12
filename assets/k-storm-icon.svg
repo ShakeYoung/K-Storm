@@ -1,0 +1,74 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">K-Storm project icon</title>
+  <desc id="desc">A stylized K inside a controlled storm vortex, representing multi-agent research brainstorming and structured knowledge synthesis.</desc>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="72%">
+      <stop offset="0%" stop-color="#142B5C"/>
+      <stop offset="58%" stop-color="#081429"/>
+      <stop offset="100%" stop-color="#030712"/>
+    </radialGradient>
+    <linearGradient id="cyanViolet" x1="178" y1="184" x2="850" y2="842" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#5FFBFF"/>
+      <stop offset="48%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+    <linearGradient id="violetCyan" x1="820" y1="216" x2="226" y2="838" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#C084FC"/>
+      <stop offset="52%" stop-color="#22D3EE"/>
+      <stop offset="100%" stop-color="#F8FAFC"/>
+    </linearGradient>
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.26 0 0 0 0 0.86 0 0 0 0 1 0 0 0 0.72 0" result="glow"/>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="tinyGlow" x="-120%" y="-120%" width="340%" height="340%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="1024" rx="224" fill="url(#bg)"/>
+
+  <g opacity="0.18" stroke="#7DD3FC" stroke-width="2">
+    <path d="M220 325C336 242 483 224 621 274C742 318 823 410 850 525"/>
+    <path d="M195 688C310 775 462 804 608 762C738 724 830 635 861 512"/>
+    <path d="M293 217C248 336 270 465 353 556C444 657 589 692 720 651"/>
+    <path d="M742 234C800 351 788 492 707 598C614 720 451 767 306 715"/>
+  </g>
+
+  <g filter="url(#softGlow)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M789 310C696 188 497 156 343 229C208 293 143 427 181 552" stroke="url(#cyanViolet)" stroke-width="34"/>
+    <path d="M233 724C351 852 570 873 726 765C854 677 899 527 845 405" stroke="url(#violetCyan)" stroke-width="30"/>
+    <path d="M302 279C430 205 602 220 718 319C828 413 865 555 810 676" stroke="#38BDF8" stroke-width="18" opacity="0.78"/>
+    <path d="M721 741C596 824 421 815 298 720C184 632 139 494 182 369" stroke="#A78BFA" stroke-width="18" opacity="0.68"/>
+  </g>
+
+  <g filter="url(#tinyGlow)">
+    <circle cx="304" cy="276" r="18" fill="#E0F2FE"/>
+    <circle cx="790" cy="314" r="16" fill="#67E8F9"/>
+    <circle cx="845" cy="578" r="15" fill="#C4B5FD"/>
+    <circle cx="684" cy="771" r="17" fill="#F8FAFC"/>
+    <circle cx="232" cy="704" r="15" fill="#22D3EE"/>
+  </g>
+
+  <g filter="url(#softGlow)">
+    <path d="M398 304V720" stroke="#F8FAFC" stroke-width="82" stroke-linecap="round"/>
+    <path d="M417 512L650 302" stroke="url(#cyanViolet)" stroke-width="86" stroke-linecap="round"/>
+    <path d="M417 520L672 724" stroke="url(#violetCyan)" stroke-width="86" stroke-linecap="round"/>
+  </g>
+
+  <g opacity="0.55" stroke="#081429" stroke-width="18" stroke-linecap="round">
+    <path d="M430 512L608 355"/>
+    <path d="M432 524L626 676"/>
+  </g>
+
+  <circle cx="425" cy="516" r="32" fill="#081429" stroke="#67E8F9" stroke-width="10"/>
+  <circle cx="425" cy="516" r="8" fill="#F8FAFC"/>
+</svg>

@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/k-storm-icon.svg" width="160" alt="K-Storm logo">
+</p>
+
 # K-Storm（KS）
 
 K-Storm 是一个本地运行的科研选题多 Agent 头脑风暴工具。它把用户填写的科研背景模板和上传文档转成高密度 briefing，再让多个 Agent 进行可控的多轮讨论，最后生成可复制的 Markdown 选题报告。
@@ -289,18 +293,6 @@ Moderator 汇总冲突点和遗漏点
 - `停止分析`：用户可以在运行中主动停止当前 run。当前已经发出的模型 HTTP 请求不能从 socket 层硬杀掉，但其返回结果会被丢弃，不会继续推进后续 Agent。
 - `继续分析`：失败或已停止的 run 可从失败位置继续执行。继续前可以先打开“模型设置”，针对失败环节重选模型。
 - `从头重跑`：保留原逻辑，基于同一模板和文档创建一条新的 run，从入口阶段重新开始。
-
-## GitHub 上传前注意
-
-项目已包含 `.gitignore`，默认忽略 `data/*.sqlite3`、`node_modules/`、`__pycache__/`、`.env` 等本地文件。上传前仍建议手动确认：
-
-```bash
-find . -name "ks.sqlite3" -type f
-find . -name "__pycache__" -type d
-find . -name "*.pyc" -type f
-```
-
-不要把真实 API Key、历史运行数据库、上传文档内容提交到 GitHub。
 
 ## 目录结构
 
