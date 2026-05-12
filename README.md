@@ -52,46 +52,16 @@ K-Storm is a **fully local** research topic brainstorming MVP. Multiple AI agent
 
 ## 🏗️ Architecture
 
-```mermaid
-flowchart TB
-  User["用户 / 科研人员"]
+K-Storm is organized as a local research orchestration system: the React console handles input, debate visualization, reports, and history; the FastAPI backend runs the state machine and routes each agent slot to its assigned model. The deliberation group consists of four complementary roles:
 
-  subgraph Browser["浏览器 Web UI"]
-    ReactUI["React + Vite 主前端（V1.6）"]
-    ModelSettings["模型设置"]
-    ModeSelector["讨论模式选择"]
-    TemplateForm["头脑风暴模板"]
-    RunView["讨论台"]
-    DocumentView["报告页"]
-    HistoryView["历史记录"]
-  end
+- **Novelty Agent** — proposes new directions and differentiating angles
+- **Mechanism Agent** — examines causal chains and mechanism plausibility
+- **Feasibility Agent** — evaluates experiment design, resources, and execution cost
+- **Reviewer Agent** — simulates peer-review criticism and exposes weak points
 
-  subgraph Backend["FastAPI Backend"]
-    API["API Layer"]
-    Orchestrator["Agent Orchestrator"]
-    AgentRegistry["Agent Registry"]
-    ProviderRouter["Agent Model Router"]
-    ProviderClients["Model Providers\nOpenAI / Anthropic / Mock"]
-    Storage["SQLite Storage"]
-  end
-
-  subgraph Models["外部模型服务"]
-    DeepSeek["DeepSeek / DashScope / OpenRouter"]
-    Ollama["Ollama Local"]
-    Mock["Local Mock"]
-  end
-
-  User --> ReactUI
-  ReactUI --> API
-  API --> Orchestrator
-  Orchestrator --> AgentRegistry
-  Orchestrator --> ProviderRouter
-  ProviderRouter --> ProviderClients
-  ProviderClients --> DeepSeek
-  ProviderClients --> Ollama
-  ProviderClients --> Mock
-  API --> Storage
-```
+<div align="center">
+<img src="assets/k-storm-architecture.svg" alt="K-Storm Architecture" width="100%">
+</div>
 
 <details>
 <summary><b>Workflow Pipeline</b></summary>
