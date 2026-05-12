@@ -52,6 +52,50 @@ K-Storm is a **fully local** research topic brainstorming MVP. Multiple AI agent
 
 ## 🏗️ Architecture
 
+```mermaid
+flowchart TB
+  User["用户 / 科研人员"]
+
+  subgraph Browser["浏览器 Web UI"]
+    ReactUI["React + Vite 主前端（V1.6）"]
+    ModelSettings["模型设置"]
+    ModeSelector["讨论模式选择"]
+    TemplateForm["头脑风暴模板"]
+    RunView["讨论台"]
+    DocumentView["报告页"]
+    HistoryView["历史记录"]
+  end
+
+  subgraph Backend["FastAPI Backend"]
+    API["API Layer"]
+    Orchestrator["Agent Orchestrator"]
+    AgentRegistry["Agent Registry"]
+    ProviderRouter["Agent Model Router"]
+    ProviderClients["Model Providers\nOpenAI / Anthropic / Mock"]
+    Storage["SQLite Storage"]
+  end
+
+  subgraph Models["外部模型服务"]
+    DeepSeek["DeepSeek / DashScope / OpenRouter"]
+    Ollama["Ollama Local"]
+    Mock["Local Mock"]
+  end
+
+  User --> ReactUI
+  ReactUI --> API
+  API --> Orchestrator
+  Orchestrator --> AgentRegistry
+  Orchestrator --> ProviderRouter
+  ProviderRouter --> ProviderClients
+  ProviderClients --> DeepSeek
+  ProviderClients --> Ollama
+  ProviderClients --> Mock
+  API --> Storage
+```
+
+<details>
+<summary><b>Workflow Pipeline</b></summary>
+
 ```text
 Template + uploaded documents
   ↓
@@ -69,6 +113,10 @@ Structured IR (compressed)
   ↓
 Output Agent → final Markdown report
 ```
+
+</details>
+
+Full architecture docs: [docs/ARCHITECTURE.zh-CN.md](docs/ARCHITECTURE.zh-CN.md)
 
 <details>
 <summary><b>Project Structure</b></summary>
@@ -122,9 +170,9 @@ npm install
 npm run dev
 ```
 
-Open **http://localhost:5173** for the full V1.6 experience.
+Open <http://localhost:5173> for the full V1.6 experience.
 
-> The backend also serves a standalone UI at **http://localhost:8000** (legacy, no V1.6 features).
+> The backend also serves a standalone UI at <http://localhost:8000> (legacy, no V1.6 features).
 
 ### 3. Configure Models (optional)
 
