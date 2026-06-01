@@ -42,12 +42,12 @@ STEP_ESTIMATES = {
     "final_report": 240,
 }
 OUTPUT_LIMITS = {
-    "intake": 4500,
+    "intake": 3500,
     "doc_extract": 900,
-    "debate": 6000,
-    "moderator": 5000,
+    "debate": 4000,
+    "moderator": 3500,
     "group_summary": 4200,
-    "final_report": 8000,
+    "final_report": 6000,
 }
 
 DOC_INLINE_THRESHOLD_CHARS = 12000
@@ -90,11 +90,21 @@ def generate_validated(
     stage_label: str,
     attempts: int = 2,
 ) -> str:
-    """Generate text and validate structural completeness before advancing workflow."""
+    """Generate text and validate structural completeness before advancing workflow.
+
+    Strategy for truncated outputs (has body but missing end marker/sections):
+    - On 2nd attempt, only ask the model to *continue* and append the missing
+      sections, rather than regenerating the entire output from scratch.
+    - This is much faster because the continuation prompt is tiny compared to
+      the full original prompt.
+    """
     last_text = ""
+    last_body = ""  # tracks the accumulated body for truncation-continuation
     last_errors: list[str] = []
     marker = END_MARKERS.get(kind, "")
     prompt = user_prompt
+    is_continuation = False
+
     for attempt in range(attempts):
         text = provider.generate(
             agent_key=agent_key,
@@ -103,20 +113,50 @@ def generate_validated(
             max_tokens=max_tokens,
             on_retry=on_retry,
         )
-        last_text = text or ""
+        text = text or ""
+
+        # If this was a continuation request, prepend the original body
+        if is_continuation:
+            text = last_body + "\n\n" + text
+            is_continuation = False
+
+        last_text = text
         last_errors = validate_output_complete(last_text, kind)
         if not last_errors:
             return strip_end_markers(last_text)
-        prompt = f"""你上一条输出没有通过完整性校验，问题如下：
+
+        # P2: detect truncation vs empty output
+        body = strip_end_markers(last_text)
+        truncation_threshold = {"debate": 500, "moderator": 400, "group_summary": 400, "final_report": 600, "quick": 150, "doc_extract": 60, "intake": 100}.get(kind, 200)
+        is_truncation = len(body) >= truncation_threshold
+
+        if is_truncation and attempt < attempts - 1:
+            # Truncation: save body, ask for continuation only
+            last_body = body
+            is_continuation = True
+            missing_desc = "; ".join(last_errors)
+            prompt = f"""你上一条输出被截断了,缺少:{missing_desc}
+
+请直接续写以下内容的缺失部分(不要重复已有内容):
+
+--- 已有输出(最后几行) ---
+{body[-800:]}
+
+--- 请从这里续写 ---
+补全所有缺失小节,最后必须以 {marker} 结束。"""
+        elif attempt < attempts - 1:
+            # Empty/very short output: full retry with correction hints
+            prompt = f"""你上一条输出没有通过完整性校验,问题如下:
 {chr(10).join('- ' + item for item in last_errors)}
 
-请重新完整输出本阶段内容，不要解释校验错误，不要省略必需小节。最后必须以 {marker} 结束。
+请重新完整输出本阶段内容,不要解释校验错误,不要省略必需小节。最后必须以 {marker} 结束。
 
-原始任务如下：
+原始任务如下:
 {user_prompt}
 """
+
     preview = " ".join(last_text.split())[:180]
-    raise IncompleteModelOutput(f"{stage_label}输出不完整：{'; '.join(last_errors)}。最后一次输出片段：{preview}")
+    raise IncompleteModelOutput(f"{stage_label}输出不完整:{'; '.join(last_errors)}。最后一次输出片段:{preview}")
 
 
 def validate_output_complete(text: str, kind: str) -> list[str]:
@@ -127,7 +167,7 @@ def validate_output_complete(text: str, kind: str) -> list[str]:
         errors.append(f"缺少结束标记 {marker}")
     body = strip_end_markers(raw)
     if len(body) < {"debate": 300, "moderator": 300, "group_summary": 400, "final_report": 800, "quick": 200, "doc_extract": 80, "intake": 150}.get(kind, 200):
-        errors.append("正文过短，疑似截断")
+        errors.append("正文过短,疑似截断")
     if kind == "debate":
         if "### 给结构化 IR 的要点摘要" not in body:
             errors.append("缺少结构化 IR 摘要小节")
@@ -137,11 +177,11 @@ def validate_output_complete(text: str, kind: str) -> list[str]:
             errors.append("外部引用小节缺少合法引用行")
         for key in ["关键主张", "支撑依据", "风险或反驳点", "建议进入 IR"]:
             if key not in body:
-                errors.append(f"IR 摘要缺少字段：{key}")
+                errors.append(f"IR 摘要缺少字段:{key}")
     elif kind == "moderator":
         for key in ["冲突", "遗漏", "第 2 轮", "给结构化 IR 的要点摘要"]:
             if key not in body:
-                errors.append(f"Moderator 输出缺少：{key}")
+                errors.append(f"Moderator 输出缺少:{key}")
     elif kind == "group_summary":
         if "```json" not in body.lower() and not body.lstrip().startswith("{"):
             errors.append("结构化 IR 缺少 JSON 块")
@@ -154,7 +194,7 @@ def validate_output_complete(text: str, kind: str) -> list[str]:
             errors.append("最终报告缺少 Markdown 标题")
         for key in ["下一步", "证据", "风险"]:
             if key not in body:
-                errors.append(f"最终报告缺少核心板块：{key}")
+                errors.append(f"最终报告缺少核心板块:{key}")
     elif kind == "doc_extract":
         bullet_count = len(re.findall(r"[\n\r]\s*[-*•·]\s+", body)) + (1 if re.match(r"\s*[-*•·]\s+", body) else 0)
         if bullet_count < 2:
@@ -221,10 +261,10 @@ def research_stage_label(stage: ResearchStage | str) -> str:
 def stage_goal_text(stage: ResearchStage | str) -> str:
     value = str(stage)
     return {
-        ResearchStage.TOPIC_EXPLORATION.value: "当前阶段以探索新方向和候选课题为主，可以给出课题名称建议。",
-        ResearchStage.PLAN_REFINEMENT.value: "当前阶段以推进和完善现有课题为主，不要把重新推荐新课题作为主轴。",
-        ResearchStage.RESULT_DIAGNOSIS.value: "当前阶段以解释结果、定位瓶颈、设计补充实验为主，不要通篇转成新选题推荐。",
-        ResearchStage.PIVOT_EVALUATION.value: "当前阶段以判断是否需要局部修正或转向为主；若当前路线偏差较大，可在报告后段给出转向建议。",
+        ResearchStage.TOPIC_EXPLORATION.value: "当前阶段以探索新方向和候选课题为主,可以给出课题名称建议。",
+        ResearchStage.PLAN_REFINEMENT.value: "当前阶段以推进和完善现有课题为主,不要把重新推荐新课题作为主轴。",
+        ResearchStage.RESULT_DIAGNOSIS.value: "当前阶段以解释结果、定位瓶颈、设计补充实验为主,不要通篇转成新选题推荐。",
+        ResearchStage.PIVOT_EVALUATION.value: "当前阶段以判断是否需要局部修正或转向为主;若当前路线偏差较大,可在报告后段给出转向建议。",
     }.get(value, "请根据当前科研阶段组织输出。")
 
 
@@ -1610,7 +1650,7 @@ def needs_hybrid_intake(documents: list[UploadedDocument]) -> bool:
 def document_extract_prompt(document: UploadedDocument) -> str:
     excerpt = _document_window(document.content or "") or "无可读取文本"
     return f"""
-请为入口 briefing 提取单份文档摘要，目标是服务后续科研讨论，而不是复写全文。
+请为入口 briefing 提取单份文档摘要,目标是服务后续科研讨论,而不是复写全文。
 
 文档名称:{document.name}
 文档类型:{document.doc_type}
@@ -1623,9 +1663,9 @@ def document_extract_prompt(document: UploadedDocument) -> str:
 
 输出要求:
 1. 只保留对科研选题/方案推进必要的信息。
-2. 优先提取：研究目标、实验设计、关键数据/现象、已验证结论、限制条件、待验证问题。
-3. 删除重复背景和无关细节，不编造文档中不存在的数据。
-4. 输出 5-8 条中文短 bullet，每条尽量 30-80 字，总长度控制在 180-420 中文字。
+2. 优先提取:研究目标、实验设计、关键数据/现象、已验证结论、限制条件、待验证问题。
+3. 删除重复背景和无关细节,不编造文档中不存在的数据。
+4. 输出 5-8 条中文短 bullet,每条尽量 30-80 字,总长度控制在 180-420 中文字。
 5. 最后一行必须输出:<<<END_OF_DOC_EXTRACT>>>
 """.strip()
 
@@ -1634,7 +1674,7 @@ def _fallback_doc_summary(document: UploadedDocument) -> str:
     excerpt = _document_window(document.content or "") or "无可读取文本"
     lines = [l.strip() for l in excerpt.splitlines() if l.strip()]
     preview = "\n".join(lines[:6])
-    return f"[摘要提取失败，以下为原文头尾裁切片段]\n{preview}".strip()
+    return f"[摘要提取失败,以下为原文头尾裁切片段]\n{preview}".strip()
 
 
 def _is_tabular_document(document: UploadedDocument) -> bool:
@@ -1663,14 +1703,14 @@ def _deterministic_table_summary(document: UploadedDocument) -> str:
     sample_head = "\n".join(lines[:4])
     sample_tail = "\n".join(lines[-3:]) if total_rows > 6 else ""
     parts = [
-        f"表格维度：{total_rows} 行 × {len(columns)} 列",
-        f"列名：{', '.join(columns[:20])}" if columns else "",
+        f"表格维度:{total_rows} 行 × {len(columns)} 列",
+        f"列名:{', '.join(columns[:20])}" if columns else "",
     ]
     if document.note and document.note.strip():
-        parts.append(f"用户注释：{document.note.strip()}")
-    parts.append(f"头部示例：\n{sample_head}")
+        parts.append(f"用户注释:{document.note.strip()}")
+    parts.append(f"头部示例:\n{sample_head}")
     if sample_tail:
-        parts.append(f"尾部示例：\n{sample_tail}")
+        parts.append(f"尾部示例:\n{sample_tail}")
     return "\n".join(p for p in parts if p)
 
 
@@ -1779,8 +1819,8 @@ def intake_prompt(template: TemplateInput, documents: list[UploadedDocument]) ->
     if use_hybrid:
         document_entries = budget_document_summaries(documents)
         document_text = "\n\n".join(document_entries)
-        intake_source_note = "以下内容为上传文档的预提取摘要与用户注释，不再包含文档全文。"
-        reading_requirement = "请基于模板 + 文档摘要形成高密度入口 briefing；如果文档摘要中信息不足，请明确保留不确定性。"
+        intake_source_note = "以下内容为上传文档的预提取摘要与用户注释,不再包含文档全文。"
+        reading_requirement = "请基于模板 + 文档摘要形成高密度入口 briefing;如果文档摘要中信息不足,请明确保留不确定性。"
     else:
         document_text = "\n\n".join(
             [
@@ -1854,18 +1894,32 @@ def debate_prompt(
         3: "给出最终推荐、优先级判断和可执行建议。",
     }
     history_text = _debate_history_text(history[-8:])
-    return f"""
-{template_prompt(template)}
 
-结构化 briefing:
+    # P1: R1 只保留精简 briefing,R2/R3 通过 moderator 补充的 history 获取完整上下文
+    if round_number == 1:
+        top_facts = ";".join(brief.known_facts[:5])
+        brief_section = f"""结构化 briefing(精简):
+- 研究上下文:{brief.research_context}
+- 核心已知事实:{top_facts}
+- 关键未知问题:{";".join(brief.unknowns[:3])}
+
+入口 Agent 整合 briefing(以此为主要前置信息,不得假设还能读取上传文档全文):
+{brief.intake_synthesis or "入口 Agent 未提供额外整合内容。"}"""
+    else:
+        brief_section = f"""结构化 briefing:
 - 研究上下文:{brief.research_context}
 - 已知事实:{";".join(brief.known_facts)}
 - 未知问题:{";".join(brief.unknowns)}
 - 约束:{";".join(brief.constraints)}
 - 机会点:{";".join(brief.opportunity_points)}
 
-入口 Agent 整合 briefing(讨论组必须以此为主要前置信息,不得假设还能读取上传文档全文):
-{brief.intake_synthesis or "入口 Agent 未提供额外整合内容。"}
+入口 Agent 整合 briefing:
+{brief.intake_synthesis or "入口 Agent 未提供额外整合内容。"}"""
+
+    return f"""
+{template_prompt(template)}
+
+{brief_section}
 
 当前轮次:第 {round_number} 轮
 本轮任务:{round_tasks.get(round_number, "继续收敛并给出优先级判断。")}
@@ -1879,12 +1933,14 @@ def debate_prompt(
 
 {mode_context}
 全局原则:
-- 若用户已提供较完整的当前课题、实验设计或实验结果，默认目标是帮助其推进、完善、诊断和创新当前路线。
-- 除非当前路线存在明显结构性缺陷，否则不要把“重新推荐新课题”作为主要输出。
-- 如发现更优方向偏差较大，可将其作为“转向建议”或“备选方向”提出，而不是替代当前主轴。
+- 若用户已提供较完整的当前课题、实验设计或实验结果,默认目标是帮助其推进、完善、诊断和创新当前路线。
+- 除非当前路线存在明显结构性缺陷,否则不要把"重新推荐新课题"作为主要输出。
+- 如发现更优方向偏差较大,可将其作为"转向建议"或"备选方向"提出,而不是替代当前主轴。
 
-请用中文 Markdown 输出,内容具体、可执行,避免空泛套话。
-最后必须追加一个小节,供结构化 IR 使用:
+输出要求:
+- 用中文 Markdown 输出,观点主体控制在 800-1500 字,内容具体、可执行,避免空泛套话。
+- 不要逐条复述已知事实,直接给出你的判断和建议。
+- 追加以下结构化小节:
 
 ### 给结构化 IR 的要点摘要
 - 关键主张:
@@ -1892,22 +1948,16 @@ def debate_prompt(
 - 风险或反驳点:
 - 建议进入 IR 的下一步动作:
 
-该小节必须控制在 120-220 中文字,不要复述全文。
+该小节控制在 80-150 中文字,不要复述全文。
 
 ### 外部引用
-你的发言必须基于可查证的外部论据。列出你引用的所有外部来源，每条一行，格式：
-[类型] 标题 | 作者/来源 | 链接 | 年份 | 支撑的观点
-类型只能是：paper / blog / dataset / book / other
+每条一行,格式:[类型] 标题 | 作者/来源 | 链接 | 年份 | 支撑的观点
+类型: paper / blog / dataset / book / other
+- 至少 1 条外部论据(论文、预印本、技术博客、公共数据集均可)。
+- 标题必填;记不清信息时链接写"待确认"。
+- 不要编造不存在的论文、作者或链接。
 
-要求：
-- 每次发言至少引用 1 条外部论据（论文、预印本、技术博客、公共数据集均可）。
-- 标题是必填项。如果是论文，写论文标题（而非作者名）；如果是书籍，写书名。
-- 创新性论点必须指向具体文献；机制假设必须引用机制路径的支撑研究；可行性判断必须引用方法论文或技术标准。
-- 如果你确实参考了某篇论文但记不清完整信息，在链接处写"待确认"，但仍须给出标题、作者、年份和核心结论。
-- 不要编造不存在的论文、作者或链接。你的引用将接受人工核查。
-- "支撑的观点"列直接写观点内容，不要重复写"支撑观点"这几个字。
-
-最后一行必须输出：<<<END_OF_AGENT_MESSAGE>>>
+最后一行必须输出:<<<END_OF_AGENT_MESSAGE>>>
 """.strip()
 
 
@@ -1962,7 +2012,7 @@ def moderator_prompt(
 4. 每个候选方向的初步支持证据、最弱证据点、最大可行性风险
 5. 仍缺失的信息、关键变量或实验控制
 6. 第 2 轮每个 Agent 必须回应的具体问题
-7. 如果当前阶段不是“选题探索”，必须优先围绕用户现有课题推进；只有在发现明显方向偏差时，才把转向建议放在最后。
+7. 如果当前阶段不是"选题探索",必须优先围绕用户现有课题推进;只有在发现明显方向偏差时,才把转向建议放在最后。
 8. 末尾追加"### 给结构化 IR 的要点摘要",控制在 120-220 中文字,并明确列出候选方向、冲突点和待审查点。
 9. 最后一行必须输出:<<<END_OF_MODERATOR_MESSAGE>>>
 
@@ -2006,7 +2056,7 @@ def summary_prompt(
 7. JSON 后再输出"## 结构化 IR 文档",中文 Markdown,控制在 1200-2200 中文字之间。
 8. Markdown 只保留:决策摘要、候选方向排序、证据链、批判点、主要风险、替代路线、下一步动作。
 9. 不要逐字复述 Agent 发言,不要生成 mermaid/graph/code block。
-10. 如果当前阶段不是“选题探索”，candidate_directions 应优先表达“推进路径 / 解释路径 / 诊断路径 / 调整路径”，不要机械地改写成新课题名称。
+10. 如果当前阶段不是"选题探索",candidate_directions 应优先表达"推进路径 / 解释路径 / 诊断路径 / 调整路径",不要机械地改写成新课题名称。
 11. 最后一行必须输出:<<<END_OF_GROUP_SUMMARY>>>
 
 {template_prompt(template)}
@@ -2074,10 +2124,10 @@ def report_prompt(
 2. 前置信息整合:把入口 briefing 中的已有数据、上传文档重点、可用技术平台和不能丢失的事实压缩成研究出发点。
 3. 核心科学问题提炼:给出 1 个主问题和 2-4 个子问题。
 4. 机制框架与可检验假设:说明变量关系、可能因果链条、关键 readout,以及哪些环节最值得验证。
-5. 根据科研阶段组织主体内容：
-   - 选题探索：可以输出“推荐选题 Top 3-5”。
-   - 方案收敛 / 结果诊断 / 转向评估：主体应围绕当前课题推进、完善、诊断和修正，不要通篇都落在新课题命名上。
-6. 如果当前阶段是选题探索，则每个 Top 方向包含题目名称、科学问题、创新点、可行性、实验路线、关键验证实验、风险点、替代方案、适合产出类型。
+5. 根据科研阶段组织主体内容:
+   - 选题探索:可以输出"推荐选题 Top 3-5"。
+   - 方案收敛 / 结果诊断 / 转向评估:主体应围绕当前课题推进、完善、诊断和修正,不要通篇都落在新课题命名上。
+6. 如果当前阶段是选题探索,则每个 Top 方向包含题目名称、科学问题、创新点、可行性、实验路线、关键验证实验、风险点、替代方案、适合产出类型。
 7. 每个核心方向或推进路径的支持证据:
    - 必须从 V1.5 决策结构体的 evidence_refs 中按 ID 提取该方向绑定的证据。
    - 每条证据写明:来源类型(template / intake_briefing / uploaded_document / agent_debate)、来源标题、引用摘要、支撑点。
@@ -2089,7 +2139,7 @@ def report_prompt(
 11. 综合优先级排序:用简短矩阵比较创新性、证据强度、可行性、周期、风险和产出潜力;排序必须与 V1.5 决策结构体一致。
 12. 下一步 2-4 周行动计划:给出按周推进的具体任务。
 13. 可直接用于开题/组会的表达版本:写成 2-4 段正式但不夸张的汇报表述。
-14. 若当前路线与讨论结果的较优方向偏差较大，可在报告最后增加“转向建议”小节，但不要让它成为全文主轴。
+14. 若当前路线与讨论结果的较优方向偏差较大,可在报告最后增加"转向建议"小节,但不要让它成为全文主轴。
 
 长度要求:
 1. 总长度控制在 4500-7000 中文字之间。
@@ -2502,7 +2552,7 @@ def extract_references(messages: list[DebateMessage], existing: list | None = No
 
 def _fallback_extract(messages, add_fn):
     """从消息全文中用正则匹配可能的外部引用:URL、论文引用格式等。"""
-    # 匹配严格格式的论文引用，只接受完整括号或逗号分隔的标准格式：
+    # 匹配严格格式的论文引用,只接受完整括号或逗号分隔的标准格式:
     #   Author et al. (YYYY)   Author & Author (YYYY)   Author (YYYY)
     #   Author et al., YYYY
     #   (Author et al., YYYY)  (Author, YYYY)
@@ -2514,7 +2564,7 @@ def _fallback_extract(messages, add_fn):
         r"|[A-Z][a-z]+\s*\(\d{4}\)"                        # Author (YYYY)
         r"|[A-Z][a-z]+\s+et\s+al\.?,\s*\d{4}"              # Author et al., YYYY
         r"|\([A-Z][a-z]+\s+et\s+al\.?,\s*\d{4}\)"          # (Author et al., YYYY)
-        r"|\([A-Z][a-z]+,\s*\d{4}\)"                        # (Author, YYYY) — 逗号必须
+        r"|\([A-Z][a-z]+,\s*\d{4}\)"                        # (Author, YYYY) - 逗号必须
         r")"
     )
     # 匹配 URL
@@ -2526,7 +2576,7 @@ def _fallback_extract(messages, add_fn):
 
     for message in messages:
         content = message.content
-        # 预处理：截掉 IR 摘要部分，避免 fallback 从中误提取引用
+        # 预处理:截掉 IR 摘要部分,避免 fallback 从中误提取引用
         ir_idx = content.find("### 给结构化 IR")
         if ir_idx < 0:
             ir_idx = content.find("给结构化 IR")
@@ -2568,7 +2618,7 @@ def _fallback_extract(messages, add_fn):
                     source_type = "paper"
                 else:
                     # 找最近一行有意义的文字作为标题
-                    line_match = re.search(r'([\u4e00-\u9fff\w][\u4e00-\u9fff\w\s]{4,80}?)\s*[：:\n]?', before_text)
+                    line_match = re.search(r'([\u4e00-\u9fff\w][\u4e00-\u9fff\w\s]{4,80}?)\s*[::\n]?', before_text)
                     if line_match:
                         title = line_match.group(1).strip().split('\n')[-1].strip()
             if not title:
@@ -2645,19 +2695,19 @@ def _fallback_extract(messages, add_fn):
             # 提取年份
             year_match = re.search(r'(\d{4})', cite_text)
             year = year_match.group(1) if year_match else ""
-            # 提取作者：去掉年份、括号、标点，只保留字母和空格
+            # 提取作者:去掉年份、括号、标点,只保留字母和空格
             author_part = re.sub(r'[\d()\[\],;:.]', ' ', cite_text)
             author_part = re.sub(r'\s+', ' ', author_part).strip()
-            # 去掉末尾残留的 et al / & 等，规范化为纯字母+空格
+            # 去掉末尾残留的 et al / & 等,规范化为纯字母+空格
             author_part = author_part.replace('&', 'and')
-            # 验证 author_part 确实像人名（纯字母+空格，不含特殊字符）
+            # 验证 author_part 确实像人名(纯字母+空格,不含特殊字符)
             if not author_part or not re.match(r'^[A-Za-z\s]{2,40}$', author_part):
                 continue
-            # 截取上下文：短距离，且排除 IR 摘要等无关小节
+            # 截取上下文:短距离,且排除 IR 摘要等无关小节
             start = max(0, match.start() - 80)
             end = min(len(content), match.end() + 60)
             context = content[start:end].replace("\n", " ").strip()
-            # 如果 context 包含 IR 摘要标记，截断到该标记之前
+            # 如果 context 包含 IR 摘要标记,截断到该标记之前
             ir_marker = context.find("给结构化 IR")
             if ir_marker > 0:
                 context = context[:ir_marker].strip()
