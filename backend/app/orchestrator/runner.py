@@ -62,6 +62,7 @@ END_MARKERS = {
     "group_summary": "<<<END_OF_GROUP_SUMMARY>>>",
     "final_report": "<<<END_OF_FINAL_REPORT>>>",
     "quick": "<<<END_OF_QUICK_PROBE>>>",
+    "doc_extract": "<<<END_OF_DOC_EXTRACT>>>",
 }
 
 
@@ -124,7 +125,7 @@ def validate_output_complete(text: str, kind: str) -> list[str]:
     if marker and marker not in raw:
         errors.append(f"缺少结束标记 {marker}")
     body = strip_end_markers(raw)
-    if len(body) < {"debate": 300, "moderator": 300, "group_summary": 400, "final_report": 800, "quick": 200}.get(kind, 200):
+    if len(body) < {"debate": 300, "moderator": 300, "group_summary": 400, "final_report": 800, "quick": 200, "doc_extract": 80}.get(kind, 200):
         errors.append("正文过短，疑似截断")
     if kind == "debate":
         if "### 给结构化 IR 的要点摘要" not in body:
@@ -153,6 +154,10 @@ def validate_output_complete(text: str, kind: str) -> list[str]:
         for key in ["下一步", "证据", "风险"]:
             if key not in body:
                 errors.append(f"最终报告缺少核心板块：{key}")
+    elif kind == "doc_extract":
+        bullet_count = len(re.findall(r"[\n\r]\s*[-*•·]\s+", body)) + (1 if re.match(r"\s*[-*•·]\s+", body) else 0)
+        if bullet_count < 2:
+            errors.append("文档摘要至少需要 2 条 bullet 要点")
     return errors
 
 
@@ -1617,8 +1622,52 @@ def document_extract_prompt(document: UploadedDocument) -> str:
 2. 优先提取：研究目标、实验设计、关键数据/现象、已验证结论、限制条件、待验证问题。
 3. 删除重复背景和无关细节，不编造文档中不存在的数据。
 4. 输出 5-8 条中文短 bullet，每条尽量 30-80 字，总长度控制在 180-420 中文字。
-5. 最后一行必须输出:<<<END_OF_AGENT_MESSAGE>>>
+5. 最后一行必须输出:<<<END_OF_DOC_EXTRACT>>>
 """.strip()
+
+
+def _fallback_doc_summary(document: UploadedDocument) -> str:
+    excerpt = _document_window(document.content or "") or "无可读取文本"
+    lines = [l.strip() for l in excerpt.splitlines() if l.strip()]
+    preview = "\n".join(lines[:6])
+    return f"[摘要提取失败，以下为原文头尾裁切片段]\n{preview}".strip()
+
+
+def _is_tabular_document(document: UploadedDocument) -> bool:
+    name = (document.name or "").lower()
+    if name.endswith((".csv", ".tsv", ".tsv.gz", ".csv.gz")):
+        return True
+    if document.doc_type == "experiment-data":
+        content = (document.content or "")[:4000]
+        lines = [l for l in content.splitlines() if l.strip()]
+        if len(lines) >= 3:
+            sep_counts = [l.count(",") + l.count("\t") for l in lines[:5]]
+            if all(c >= 2 for c in sep_counts):
+                return True
+    return False
+
+
+def _deterministic_table_summary(document: UploadedDocument) -> str:
+    content = (document.content or "").strip()
+    if not content:
+        return "[空文档]"
+    lines = content.splitlines()
+    total_rows = len(lines)
+    sep = "\t" if "\t" in (lines[0] if lines else "") else ","
+    header = lines[0].strip() if lines else ""
+    columns = [c.strip().strip('"') for c in header.split(sep)] if header else []
+    sample_head = "\n".join(lines[:4])
+    sample_tail = "\n".join(lines[-3:]) if total_rows > 6 else ""
+    parts = [
+        f"表格维度：{total_rows} 行 × {len(columns)} 列",
+        f"列名：{', '.join(columns[:20])}" if columns else "",
+    ]
+    if document.note and document.note.strip():
+        parts.append(f"用户注释：{document.note.strip()}")
+    parts.append(f"头部示例：\n{sample_head}")
+    if sample_tail:
+        parts.append(f"尾部示例：\n{sample_tail}")
+    return "\n".join(p for p in parts if p)
 
 
 def summarize_documents_if_needed(
@@ -1640,13 +1689,21 @@ def summarize_documents_if_needed(
     )
 
     summarized: list[UploadedDocument] = [document.model_copy(deep=True) for document in documents]
+    # Phase 1: deterministic table summaries (no LLM needed)
+    for i, document in enumerate(summarized):
+        if not (document.summary or "").strip() and _is_tabular_document(document):
+            summarized[i] = summarized[i].model_copy(
+                update={"summary": _compact(_deterministic_table_summary(document), DOC_SUMMARY_MAX_CHARS)}
+            )
+    run = update_run_checked(run.run_id, documents=summarized)
+    # Phase 2: LLM-based summaries for remaining non-tabular docs
     pending_indices = [index for index, document in enumerate(summarized) if not (document.summary or "").strip()]
     if not pending_indices:
         timeline = finish_timeline_step(timeline, step_key)
         run = update_run_checked(run.run_id, documents=summarized, timeline=timeline)
         return summarized, timeline, run
 
-    max_workers = min(4, max(1, len(pending_indices)))
+    max_workers = min(2, max(1, len(pending_indices)))
     futures = {}
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         for index in pending_indices:
@@ -1660,14 +1717,18 @@ def summarize_documents_if_needed(
                     user_prompt=document_extract_prompt(document),
                     max_tokens=OUTPUT_LIMITS["doc_extract"],
                     on_retry=retry_callback(run.run_id, step_key, f"预提取上传文档摘要({document.name})"),
-                    kind="debate",
+                    kind="doc_extract",
                     stage_label=f"文档摘要提取:{document.name}",
                 )
             ] = index
         for future in as_completed(futures):
             ensure_not_canceled(run.run_id)
             index = futures[future]
-            summary = future.result()
+            try:
+                summary = future.result()
+            except Exception as exc:
+                document = summarized[index]
+                summary = _fallback_doc_summary(document)
             summarized[index] = summarized[index].model_copy(update={"summary": _compact(summary, DOC_SUMMARY_MAX_CHARS)})
             run = update_run_checked(run.run_id, documents=summarized)
 
