@@ -42,12 +42,12 @@ STEP_ESTIMATES = {
     "final_report": 240,
 }
 OUTPUT_LIMITS = {
-    "intake": 3500,
+    "intake": 4500,
     "doc_extract": 900,
-    "debate": 3000,
-    "moderator": 2600,
+    "debate": 6000,
+    "moderator": 5000,
     "group_summary": 4200,
-    "final_report": 5200,
+    "final_report": 8000,
 }
 
 DOC_INLINE_THRESHOLD_CHARS = 12000
@@ -1853,10 +1853,7 @@ def debate_prompt(
         2: "优先回应 Moderator 指出的冲突点、遗漏点,再针对前面观点进行反驳、补充和修正。",
         3: "给出最终推荐、优先级判断和可执行建议。",
     }
-    history_text = "\n\n".join(
-        f"[Round {message.round} | {message.agent}]\n{message.content}"
-        for message in history[-8:]
-    )
+    history_text = _debate_history_text(history[-8:])
     return f"""
 {template_prompt(template)}
 
@@ -1914,6 +1911,37 @@ def debate_prompt(
 """.strip()
 
 
+DEBATE_HISTORY_PER_AGENT_BUDGET = 3500
+
+
+def _debate_history_text(messages: list[DebateMessage]) -> str:
+    """Compressed debate history for R2/R3 prompts.
+
+    Each agent's output is reduced to IR summary + claims + concerns,
+    with a higher per-agent budget than moderator (agents need more detail
+    for rebuttals). Falls back to head+tail excerpt if no structured fields.
+    """
+    parts: list[str] = []
+    for message in messages:
+        sections: list[str] = []
+        ir = message.ir_summary or _extract_ir_summary(message.content)
+        if ir:
+            sections.append(f"[IR 摘要]\n{ir}")
+        claims = message.claims or _extract_claims(message.content)
+        if claims:
+            sections.append("[核心主张]\n" + "\n".join(f"- {c}" for c in claims))
+        concerns = message.concerns or _extract_concerns(message.content)
+        if concerns:
+            sections.append("[主要顾虑]\n" + "\n".join(f"- {c}" for c in concerns))
+        if not sections:
+            sections.append("[全文裁切]\n" + _compact(message.content, DEBATE_HISTORY_PER_AGENT_BUDGET))
+        body = "\n\n".join(sections)
+        if len(body) > DEBATE_HISTORY_PER_AGENT_BUDGET:
+            body = body[:DEBATE_HISTORY_PER_AGENT_BUDGET] + "..."
+        parts.append(f"[Round {message.round} | {message.agent}]\n{body}")
+    return "\n\n".join(parts)
+
+
 def moderator_prompt(
     template: TemplateInput,
     brief: StructuredBrief,
@@ -1944,8 +1972,8 @@ def moderator_prompt(
 入口 briefing:
 {brief.intake_synthesis or brief.model_dump_json()}
 
-第 1 轮发言:
-{_messages_text(first_round)}
+第 1 轮发言(压缩摘要):
+{_moderator_messages_text(first_round)}
 """.strip()
 
 
@@ -2753,6 +2781,37 @@ def _extract_ir_summary(content: str) -> str:
     if stop:
         tail = tail[: stop.start()]
     return tail.strip()[:900]
+
+
+MODERATOR_PER_AGENT_BUDGET = 2800
+
+
+def _moderator_messages_text(messages: list[DebateMessage]) -> str:
+    """Compressed view of debate messages for moderator prompt.
+
+    Each agent's output is reduced to: IR summary + key claims + key concerns.
+    Falls back to head+tail excerpt if structured fields are empty.
+    Total per-agent output is capped at MODERATOR_PER_AGENT_BUDGET chars.
+    """
+    parts: list[str] = []
+    for message in messages:
+        sections: list[str] = []
+        ir = message.ir_summary or _extract_ir_summary(message.content)
+        if ir:
+            sections.append(f"[IR 摘要]\n{ir}")
+        claims = message.claims or _extract_claims(message.content)
+        if claims:
+            sections.append("[核心主张]\n" + "\n".join(f"- {c}" for c in claims))
+        concerns = message.concerns or _extract_concerns(message.content)
+        if concerns:
+            sections.append("[主要顾虑]\n" + "\n".join(f"- {c}" for c in concerns))
+        if not sections:
+            sections.append("[全文裁切]\n" + _compact(message.content, MODERATOR_PER_AGENT_BUDGET))
+        body = "\n\n".join(sections)
+        if len(body) > MODERATOR_PER_AGENT_BUDGET:
+            body = body[:MODERATOR_PER_AGENT_BUDGET] + "..."
+        parts.append(f"[Round {message.round} | {message.agent}]\n{body}")
+    return "\n\n".join(parts)
 
 
 def _messages_text(messages: list[DebateMessage]) -> str:
