@@ -25,6 +25,14 @@ class DiscussionMode(StrEnum):
     MEMORY_QUERY = "memory"
 
 
+class ResearchStage(StrEnum):
+    AUTO = "auto"
+    TOPIC_EXPLORATION = "topic_exploration"
+    PLAN_REFINEMENT = "plan_refinement"
+    RESULT_DIAGNOSIS = "result_diagnosis"
+    PIVOT_EVALUATION = "pivot_evaluation"
+
+
 class TemplateInput(BaseModel):
     field: str = Field(..., min_length=1)
     background: str = Field(..., min_length=1)
@@ -158,6 +166,7 @@ class UploadedDocument(BaseModel):
 class RunCreate(BaseModel):
     template_input: TemplateInput
     mode: DiscussionMode = DiscussionMode.FULL_DELIBERATION
+    research_stage: ResearchStage = ResearchStage.AUTO
     rounds: int = Field(default=3, ge=1, le=5)
     parallel_first_round: bool = False
     selected_agents: list[str] = Field(default_factory=list)
@@ -178,6 +187,7 @@ class RunRecord(BaseModel):
     run_id: str
     status: RunStatus
     mode: DiscussionMode = DiscussionMode.FULL_DELIBERATION
+    research_stage: ResearchStage = ResearchStage.AUTO
     template_input: TemplateInput
     rounds: int = 3
     parallel_first_round: bool = False
@@ -205,6 +215,7 @@ class HistoryItem(BaseModel):
     run_id: str
     status: RunStatus
     mode: DiscussionMode = DiscussionMode.FULL_DELIBERATION
+    research_stage: ResearchStage = ResearchStage.AUTO
     source_run_id: str = ""
     field: str
     target_output: str

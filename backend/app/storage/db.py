@@ -12,6 +12,7 @@ from app.schemas.models import (
     DebateMessage,
     ExternalReference,
     HistoryItem,
+    ResearchStage,
     RunRecord,
     RunStatus,
     StructuredBrief,
@@ -86,6 +87,8 @@ def init_db() -> None:
             db.execute("ALTER TABLE runs ADD COLUMN structured_ir TEXT NOT NULL DEFAULT '{}'")
         if "mode" not in columns:
             db.execute("ALTER TABLE runs ADD COLUMN mode TEXT NOT NULL DEFAULT 'full'")
+        if "research_stage" not in columns:
+            db.execute("ALTER TABLE runs ADD COLUMN research_stage TEXT NOT NULL DEFAULT 'auto'")
         if "selected_agents" not in columns:
             db.execute("ALTER TABLE runs ADD COLUMN selected_agents TEXT NOT NULL DEFAULT '[]'")
         if "probe_agent" not in columns:
@@ -108,6 +111,7 @@ def create_run(
     rounds: int = 3,
     parallel_first_round: bool = False,
     mode: str = "full",
+    research_stage: str = "auto",
     selected_agents: list[str] | None = None,
     probe_agent: str = "",
     probe_question: str = "",
@@ -124,16 +128,17 @@ def create_run(
         db.execute(
             """
             INSERT INTO runs (
-                run_id, status, mode, template_input, rounds, parallel_first_round,
+                run_id, status, mode, research_stage, template_input, rounds, parallel_first_round,
                 model_settings, documents, selected_agents, probe_agent, probe_question,
                 source_run_id, debate_messages, created_at, updated_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 run_id,
                 RunStatus.CREATED.value,
                 mode,
+                research_stage,
                 template_input.model_dump_json(),
                 rounds,
                 1 if parallel_first_round else 0,
@@ -222,6 +227,7 @@ def list_history(limit: int = 30) -> list[HistoryItem]:
                 run_id=row["run_id"],
                 status=row["status"],
                 mode=row["mode"] if "mode" in row.keys() else "full",
+                research_stage=row["research_stage"] if "research_stage" in row.keys() else "auto",
                 source_run_id=row["source_run_id"] if "source_run_id" in row.keys() else "",
                 field=template.field,
                 target_output=template.target_output,
@@ -275,6 +281,7 @@ def row_to_run(row: sqlite3.Row) -> RunRecord:
         run_id=row["run_id"],
         status=row["status"],
         mode=row["mode"] if "mode" in row.keys() else "full",
+        research_stage=row["research_stage"] if "research_stage" in row.keys() else "auto",
         template_input=TemplateInput.model_validate_json(row["template_input"]),
         rounds=row["rounds"],
         parallel_first_round=bool(row["parallel_first_round"]),

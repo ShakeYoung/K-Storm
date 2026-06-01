@@ -29,6 +29,7 @@ class MockModelProvider(ModelProvider):
             return (
                 f'建议将"{field}"的背景压缩为一个可验证问题：基于已有基础，优先寻找'
                 f'能用{platforms}在{constraints}内验证的关键变量，并把目标产出对齐到{target}。'
+                + '\n<<<END_OF_AGENT_MESSAGE>>>'
             )
         if agent_key == "novelty":
             probe = _extract(user_prompt, "用户问题")
@@ -47,6 +48,7 @@ class MockModelProvider(ModelProvider):
                 '### 外部引用\n'
                 f'[paper] {field}领域近五年创新方向综述 | Zhang et al. | https://example.com/review-{field[:3]} | 2024 | 创新方向选择有文献基础\n'
                 f'[blog] {platforms}实验平台最佳实践 | Lab Protocols | https://example.com/protocols | 2023 | 平台可行性有实践指南'
+                + '\n<<<END_OF_AGENT_MESSAGE>>>'
             )
         if agent_key == "mechanism":
             probe = _extract(user_prompt, "用户问题")
@@ -64,6 +66,7 @@ class MockModelProvider(ModelProvider):
                 '- 建议进入 IR 的下一步动作：确定主链条和备选链条\n\n'
                 '### 外部引用\n'
                 f'[paper] Causal inference in {field}: a systematic review | Li et al. | https://example.com/causal-{field[:3]} | 2023 | 因果验证方案有系统综述支撑'
+                + '\n<<<END_OF_AGENT_MESSAGE>>>'
             )
         if agent_key == "feasibility":
             probe = _extract(user_prompt, "用户问题")
@@ -82,6 +85,7 @@ class MockModelProvider(ModelProvider):
                 '### 外部引用\n'
                 f'[paper] Rapid validation strategies in experimental {field} | Wang et al. | https://example.com/rapid-validation | 2024 | 快速验证策略有方法论文\n'
                 f'[dataset] {platforms}公共数据集 | Open Data Portal | https://example.com/dataset-{field[:3]} | 2023 | 公共数据可直接获取'
+                + '\n<<<END_OF_AGENT_MESSAGE>>>'
             )
         if agent_key == "reviewer":
             probe = _extract(user_prompt, "用户问题")
@@ -100,12 +104,25 @@ class MockModelProvider(ModelProvider):
                 '### 外部引用\n'
                 f'[paper] Common pitfalls in {field} research proposals | Chen et al. | https://example.com/pitfalls-{field[:3]} | 2022 | 评审常见质疑点有文献归纳\n'
                 f'[blog] How to write a strong {target} | Academic Writing Blog | https://example.com/writing-guide | 2024 | 论证写作有结构化指南'
+                + '\n<<<END_OF_AGENT_MESSAGE>>>'
             )
         if agent_key == "group_summarizer":
             return (
-                '讨论组共识是：先把宽泛背景压缩成 3 个可验证方向，每个方向必须同时具备差异化科学问题、'
-                '可落地实验路线和明确失败替代方案。分歧主要在创新优先还是可行性优先；建议采用\u201c两阶段策略\u201d：'
-                '第一阶段快速验证，第二阶段再扩大为机制或转化研究。'
+                '```json\n'
+                '{"version":"1.5","decision_summary":"建议先压缩成3个可验证方向","key_claims":["需要差异化科学问题","需要可落地实验路线"],'
+                '"evidence_refs":[{"id":"e1","source_type":"template","source_title":"用户模板","quote_or_summary":"已有基础","supports":"差异化方向"}],'
+                '"critique_points":[{"id":"c1","dimension":"创新性","severity":"medium","content":"创新边界需明确"}],'
+                '"candidate_directions":['
+                '{"id":"d1","title":"关键调控轴验证","research_question":"关键变量是否驱动表型","rationale":"从已有基础出发","novelty":"差异化机制","feasibility":"高","risks":["只有相关性"],"alternatives":["上游因素"],"priority":1,"priority_reason":"综合最优","evidence_refs":["e1"],"critique_refs":["c1"],"next_actions":["小规模验证"]},'
+                '{"id":"d2","title":"分层队列验证","research_question":"分层是否可重复","rationale":"已有样本可分层","novelty":"解释分层","feasibility":"中高","risks":["样本异质性"],"alternatives":["公共数据"],"priority":2,"priority_reason":"可行性高","evidence_refs":["e1"],"critique_refs":["c1"],"next_actions":["定义分层标准"]},'
+                '{"id":"d3","title":"交叉技术平台延伸","research_question":"多平台评价框架","rationale":"技术组合可迁移","novelty":"方法创新","feasibility":"中","risks":["复杂度高"],"alternatives":["单平台"],"priority":3,"priority_reason":"风险较高","evidence_refs":["e1"],"critique_refs":["c1"],"next_actions":["选最小技术组合"]}'
+                ']}\n'
+                '```\n\n'
+                '## 结构化 IR 文档\n\n'
+                '### 决策摘要\n建议优先推进关键调控轴验证方向，同时准备分层队列作为备选。\n\n'
+                '### 候选方向排序\n1. 关键调控轴验证(综合最优) 2. 分层队列验证(可行性高) 3. 交叉技术平台延伸(风险较高)\n\n'
+                '### 下一步动作\n确定2-3个候选变量，设计最小验证实验。\n\n'
+                '<<<END_OF_GROUP_SUMMARY>>>'
             )
         if agent_key == "output":
             return _mock_report(field, target, platforms, constraints, preferred)
@@ -192,4 +209,6 @@ def _mock_report(
 ## 6. 可直接用于开题/组会的表达版本
 
 本课题拟基于前期研究基础，围绕{field}中的关键未解问题，构建\u201c现象观察-机制假设-实验干预-独立验证\u201d的研究链条。研究将优先利用现有{platforms}和样本资源，在{constraints}约束下开展可快速证伪的预实验，筛选最具创新性与可行性的研究方向，为后续{target}奠定明确的科学问题、技术路线和风险替代方案。
+
+<<<END_OF_FINAL_REPORT>>>
 """

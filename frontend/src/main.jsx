@@ -578,6 +578,7 @@ function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           template_input: templateOverride,
+          research_stage: options.researchStage || researchStage,
           mode: options.overrideMode || discussionMode,
           rounds: (options.overrideMode === "focused" || discussionMode === "focused") ? Math.min(payloadRounds, 2) : payloadRounds,
           parallel_first_round: payloadParallelFirstRound,
@@ -722,6 +723,7 @@ function App() {
     // 预填模板并跳转到新建讨论页
     setTemplate({ ...emptyTemplate, ...fullRun.template_input });
     if (fullRun.mode) setDiscussionMode(fullRun.mode);
+    if (fullRun.research_stage) setResearchStage(fullRun.research_stage);
     if (fullRun.selected_agents?.length) setSelectedAgents(fullRun.selected_agents);
     setRounds(inferRunRounds(fullRun));
     setParallelFirstRound(inferParallelFirstRound(fullRun));
@@ -833,8 +835,9 @@ function App() {
 
   // ── V2 页面路由 ──
   const [activePage, setActivePage] = React.useState("overview");
-  const [discussionMode, setDiscussionMode] = React.useState("full");
-  const [selectedAgents, setSelectedAgents] = React.useState(["novelty", "mechanism"]);
+    const [discussionMode, setDiscussionMode] = React.useState("full");
+    const [researchStage, setResearchStage] = React.useState("auto");
+    const [selectedAgents, setSelectedAgents] = React.useState(["novelty", "mechanism"]);
   const [probeAgent, setProbeAgent] = React.useState("reviewer");
   const [probeQuestion, setProbeQuestion] = React.useState("");
   const navItems = [
@@ -922,7 +925,7 @@ function App() {
                   </div>
                 </div>
               </div>
-              <ModeSelector mode={discussionMode} onChange={setDiscussionMode} selectedAgents={selectedAgents} setSelectedAgents={setSelectedAgents} probeAgent={probeAgent} setProbeAgent={setProbeAgent} probeQuestion={probeQuestion} setProbeQuestion={setProbeQuestion} rounds={rounds} setRounds={setRounds} parallelFirstRound={parallelFirstRound} setParallelFirstRound={setParallelFirstRound} />
+              <ModeSelector mode={discussionMode} onChange={setDiscussionMode} researchStage={researchStage} setResearchStage={setResearchStage} selectedAgents={selectedAgents} setSelectedAgents={setSelectedAgents} probeAgent={probeAgent} setProbeAgent={setProbeAgent} probeQuestion={probeQuestion} setProbeQuestion={setProbeQuestion} rounds={rounds} setRounds={setRounds} parallelFirstRound={parallelFirstRound} setParallelFirstRound={setParallelFirstRound} />
               {discussionMode === "memory" ? (
                 <MemoryQueryPanel history={history} run={run} setRun={setRun} setError={setError} onStartRun={handleCreateAndGo} />
               ) : (
@@ -1078,7 +1081,7 @@ const DEBATE_AGENTS = [
   { key: "reviewer", label: "Reviewer Agent", role: "审稿/评审" },
 ];
 
-function ModeSelector({ mode, onChange, selectedAgents, setSelectedAgents, probeAgent, setProbeAgent, probeQuestion, setProbeQuestion, rounds, setRounds, parallelFirstRound, setParallelFirstRound }) {
+function ModeSelector({ mode, onChange, researchStage, setResearchStage, selectedAgents, setSelectedAgents, probeAgent, setProbeAgent, probeQuestion, setProbeQuestion, rounds, setRounds, parallelFirstRound, setParallelFirstRound }) {
   const modes = [
     { key: "full", label: "完整讨论", desc: "多轮全员辩论 + IR 总结", agents: 8, rounds: "2-5" },
     { key: "focused", label: "聚焦小节", desc: "仅关键 Agent 精准讨论", agents: "2-3", rounds: "1-2" },
@@ -1091,6 +1094,14 @@ function ModeSelector({ mode, onChange, selectedAgents, setSelectedAgents, probe
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
     );
   }
+
+  const stages = [
+    ["auto", "自动判断", "根据输入信息密度自动选择输出侧重点"],
+    ["topic_exploration", "选题探索", "信息较少时，给出候选课题和方向建议"],
+    ["plan_refinement", "方案收敛", "已有课题/设计时，帮助推进和完善实验"],
+    ["result_diagnosis", "结果诊断", "已有实验结果时，解释现象并设计补充验证"],
+    ["pivot_evaluation", "转向评估", "路线偏差较大时，评估修正或转向条件"],
+  ];
 
   return (
     <div className="mode-selector">
@@ -1113,6 +1124,25 @@ function ModeSelector({ mode, onChange, selectedAgents, setSelectedAgents, probe
             </div>
           </button>
         ))}
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 8 }}>科研阶段</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 8 }}>
+          {stages.map(([key, label, desc]) => (
+            <button
+              key={key}
+              className={`mode-option ${researchStage === key ? "active" : ""}`}
+              onClick={() => setResearchStage(key)}
+              style={{ minHeight: 84 }}
+            >
+              <div className="mode-option-header">
+                <strong style={{ display: "inline", wordBreak: "keep-all" }}>{label.slice(0, 2)}<br/>{label.slice(2)}</strong>
+                <span className="mode-option-sub">{desc}</span>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
 
       {mode === "focused" ? (
@@ -1725,6 +1755,7 @@ function IntelRail({ run, loading, modelSettings, activePage, onNavigate, onCopy
               </strong>
             </div>
             {run.field ? <div className="intel-row"><span>领域</span><strong style={{fontSize:12}}>{run.field.length > 20 ? run.field.slice(0,20) + "..." : run.field}</strong></div> : null}
+            {run.research_stage ? <div className="intel-row"><span>阶段</span><strong>{{auto: "自动", topic_exploration: "选题探索", plan_refinement: "方案收敛", result_diagnosis: "结果诊断", pivot_evaluation: "转向评估"}[run.research_stage] || run.research_stage}</strong></div> : null}
           </div>
         ) : (
           <div style={{ color: "var(--muted)", fontSize: 13, marginTop: 8 }}>尚未启动</div>
@@ -1790,6 +1821,7 @@ function RunOverview({ run, loading, activeRounds, onRerun, onCancel, onConfirmR
         <div>
           <h2>运行概览</h2>
           <p>{run ? `Run ID：${run.run_id}` : "等待启动一次 KS 工作流"}</p>
+          {run?.research_stage ? <p style={{ marginTop: 4 }}>阶段：{{auto: "自动判断", topic_exploration: "选题探索", plan_refinement: "方案收敛", result_diagnosis: "结果诊断", pivot_evaluation: "转向评估"}[run.research_stage] || run.research_stage}</p> : null}
         </div>
         <div className="header-actions">
           {loading ? (
@@ -2700,6 +2732,21 @@ async function readError(response) {
   }
 }
 
+function reportTitleForRun(run) {
+  const mode = run?.mode;
+  const stage = run?.research_stage;
+  if (mode === "quick") return "快速探测结果";
+  if (mode === "memory") return "追问分析报告";
+  if (mode === "focused") return "聚焦分析报告";
+  return {
+    topic_exploration: "选题建议报告",
+    plan_refinement: "当前课题推进建议报告",
+    result_diagnosis: "实验结果诊断与推进报告",
+    pivot_evaluation: "路线偏差评估与调整建议",
+    auto: "最终报告",
+  }[stage] || "最终报告";
+}
+
 function ReportView({
   run,
   copied,
@@ -2714,7 +2761,7 @@ function ReportView({
     <section className="panel report-panel">
       <div className="panel-title">
         <div>
-          <h2>{{full: "选题建议报告", focused: "聚焦分析报告", memory: "追问分析报告", quick: "快速探测结果"}[run?.mode] || "最终报告"}</h2>
+          <h2>{reportTitleForRun(run)}</h2>
           <p>{{full: "Markdown 格式，可直接复制到开题或组会讨论材料。", focused: "针对特定问题的深度分析报告。", memory: "基于历史讨论的追问分析报告。", quick: "单 Agent 快速问答结果。"}[run?.mode] || "Markdown 格式，可直接复制到开题或组会讨论材料。"}</p>
         </div>
         <div className="inline-actions multi-actions">
@@ -3059,6 +3106,11 @@ function HistoryView({
                     {item.mode && item.mode !== "full" ? (
                       <span className="status-badge pending" style={{marginRight: 4}}>
                         {{focused: "聚焦", quick: "快速", memory: "记忆"}[item.mode] || item.mode}
+                      </span>
+                    ) : null}
+                    {item.research_stage && item.research_stage !== "auto" ? (
+                      <span className="status-badge pending" style={{marginRight: 4, background: "rgba(47,157,137,0.1)", color: "#2f9d89"}}>
+                        {{topic_exploration: "选题", plan_refinement: "方案", result_diagnosis: "诊断", pivot_evaluation: "转向"}[item.research_stage] || item.research_stage}
                       </span>
                     ) : null}
                     {item.source_run_id ? (

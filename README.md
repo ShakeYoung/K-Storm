@@ -9,7 +9,7 @@
 Turn your research template + uploaded documents → structured briefing → controlled multi-agent discussion → Markdown topic selection report.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://github.com/ShakeYoung/K-Storm/blob/main/LICENSE)
-[![Version](https://img.shields.io/badge/version-v1.6-green.svg?style=flat-square)](https://github.com/ShakeYoung/K-Storm)
+[![Version](https://img.shields.io/badge/version-v1.7-green.svg?style=flat-square)](https://github.com/ShakeYoung/K-Storm)
 [![Python](https://img.shields.io/badge/python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![React](https://img.shields.io/badge/react-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -26,7 +26,7 @@ K-Storm is a **fully local** research topic brainstorming MVP. Multiple AI agent
 
 **Zero cloud dependency** — works out of the box with the built-in mock provider. Plug in any OpenAI-compatible or Anthropic API to unlock real agent reasoning.
 
-## 🪄 Discussion Modes (V1.6)
+## 🪄 Discussion Modes (V1.7)
 
 | Mode | Agents | Rounds | Best For |
 |:--|:--|:--|:--|
@@ -38,6 +38,7 @@ K-Storm is a **fully local** research topic brainstorming MVP. Multiple AI agent
 ## ✨ Core Capabilities
 
 - 📋 **Structured template input** — research field, background, existing basis, constraints, goals
+- 🧭 **Research-stage aware output** — auto/manual stage selection: topic exploration, plan refinement, result diagnosis, pivot evaluation
 - 📎 **Document upload** with type tagging and per-document notes
 - 🧠 **Intake Agent** digests everything into a dense briefing
 - 🤖 **4 discussion agents** — Novelty · Mechanism · Feasibility · Reviewer
@@ -48,6 +49,7 @@ K-Storm is a **fully local** research topic brainstorming MVP. Multiple AI agent
 - 🔄 **Run management** — stop, resume from failure, rerun from scratch
 - 🗂️ **History** — search, filter, open past runs, delete
 - 📤 **Export** — MD/PDF, JSON bundle, references export
+- ✅ **Validated generation** — explicit end markers + structural checks prevent half-finished agent messages from advancing the workflow
 - ⚙️ **Per-agent model assignment** — mix mock + OpenAI + Anthropic per agent slot
 
 ## 🏗️ Architecture
@@ -140,9 +142,9 @@ npm install
 npm run dev
 ```
 
-Open <http://localhost:5173> for the full V1.6 experience.
+Open <http://localhost:5173> for the full V1.7 experience.
 
-> The backend also serves a standalone UI at <http://localhost:8000> (legacy, no V1.6 features).
+> The backend also serves a standalone UI at <http://localhost:8000> (legacy, no V1.7 features).
 
 ### 3. Configure Models (optional)
 
