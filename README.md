@@ -35,10 +35,37 @@ K-Storm is a **fully local** research topic brainstorming MVP. Multiple AI agent
 | **Quick Probe** | 1 | 1 | Fast sanity check on one question |
 | **Memory Query** | Select agents | 1–5 | Continue from a historical run's context |
 
+## 🧭 Research Stages (V1.7)
+
+K-Storm automatically detects which phase of the research cycle you're in based on the information density in your template, and adjusts the output focus accordingly. You can also override the detection manually.
+
+| Stage | When | What Changes |
+|:--|:--|:--|
+| **Topic Exploration** | Sparse input, no clear topic yet | Agents propose candidate topics and direction suggestions |
+| **Plan Refinement** | Well-defined topic + experiment design | Agents focus on pushing your current plan forward, not re-recommending new topics |
+| **Result Diagnosis** | Input contains experimental data or results | Agents interpret results, locate bottlenecks, and design follow-up experiments |
+| **Pivot Evaluation** | Input signals frustration, dead ends, or need to change direction | Agents evaluate whether to adjust the current line or pivot to an alternative |
+
+<details>
+<summary><b>How it works</b></summary>
+
+The inference engine examines your template fields for:
+
+1. **Result signals** — numerical data, fold-changes, sample sizes, p-values → `Result Diagnosis`
+2. **Design maturity** — mentions of controls, replicates, specific assays, animal models → `Result Diagnosis` if dense enough
+3. **Pivot signals** — keywords like "stuck", "bottleneck", "failed", "pivot", "switch direction" → `Pivot Evaluation`
+4. **Plan maturity** — rich platform/constraints/target output + detailed existing basis (> 80 chars) → `Plan Refinement`
+5. **Default** — everything else → `Topic Exploration`
+
+The detected stage is injected into every agent prompt as a **stage label** + **stage goal**, and shapes the final report structure:
+- Topic Exploration → "Recommended Topics Top 3-5" section
+- Other stages → report body organized around advancing/diagnosing/adjusting the current line, with optional pivot suggestions at the end
+
+</details>
+
 ## ✨ Core Capabilities
 
 - 📋 **Structured template input** — research field, background, existing basis, constraints, goals
-- 🧭 **Research-stage aware output** — auto/manual stage selection: topic exploration, plan refinement, result diagnosis, pivot evaluation
 - 📎 **Document upload** with type tagging and per-document notes
 - 🧠 **Intake Agent** digests everything into a dense briefing
 - 🤖 **4 discussion agents** — Novelty · Mechanism · Feasibility · Reviewer
