@@ -34,6 +34,7 @@ _CANCELED_RUNS: set[str] = set()
 
 STEP_ESTIMATES = {
     "template": 5,
+    "doc_extract": 120,
     "intake": 180,
     "handoff": 5,
     "debate": 180,
@@ -42,11 +43,18 @@ STEP_ESTIMATES = {
 }
 OUTPUT_LIMITS = {
     "intake": 3500,
+    "doc_extract": 900,
     "debate": 3000,
     "moderator": 2600,
     "group_summary": 4200,
     "final_report": 5200,
 }
+
+DOC_INLINE_THRESHOLD_CHARS = 12000
+DOC_EXTRACT_HEAD_CHARS = 6000
+DOC_EXTRACT_TAIL_CHARS = 2000
+DOC_SUMMARY_MAX_CHARS = 420
+INTAKE_DOC_SUMMARY_BUDGET = 9000
 
 END_MARKERS = {
     "debate": "<<<END_OF_AGENT_MESSAGE>>>",
@@ -301,6 +309,7 @@ def execute_focused_panel(
     timeline = finish_timeline_step(run.timeline, "template")
 
     # 2. Intake(精简版 briefing)
+    documents, timeline, run = summarize_documents_if_needed(run, provider, documents, timeline)
     timeline = start_timeline_step(timeline, "intake")
     run = update_run_checked(run.run_id, status=RunStatus.INTAKE_RUNNING, current_step=f"入口 Agent 整理模板({provider.label_for(INTAKE_AGENT.key)})", timeline=timeline)
     structured_brief = build_structured_brief(run.template_input, documents)
@@ -785,6 +794,7 @@ def execute_run(
     )
     timeline = finish_timeline_step(run.timeline, "template")
 
+    documents, timeline, run = summarize_documents_if_needed(run, provider, documents, timeline)
     timeline = start_timeline_step(timeline, "intake")
     intake_step = f"入口 Agent 整理模板与上传文档({provider.label_for(INTAKE_AGENT.key)})"
     run = update_run_checked(
@@ -945,6 +955,7 @@ def run_intake_step(
     documents: list[UploadedDocument],
     timeline: list[TimelineStep],
 ) -> tuple[StructuredBrief, list[TimelineStep], RunRecord]:
+    documents, timeline, run = summarize_documents_if_needed(run, provider, documents, timeline)
     timeline = start_timeline_step(timeline, "intake")
     intake_step = f"入口 Agent 整理模板与上传文档({provider.label_for(INTAKE_AGENT.key)})"
     run = update_run_checked(
@@ -1279,6 +1290,7 @@ def build_timeline(
     documents: list[UploadedDocument] | None = None,
 ) -> list[TimelineStep]:
     intake_estimate = estimate_intake_seconds(documents or [])
+    needs_doc_extract = needs_hybrid_intake(documents or [])
     steps = [
         TimelineStep(
             key="overall",
@@ -1288,6 +1300,11 @@ def build_timeline(
             is_overall=True,
         ),
         TimelineStep(key="template", label="创建运行并校验模板"),
+        *(
+            [TimelineStep(key="doc_extract", label="预提取上传文档摘要", estimate_seconds=STEP_ESTIMATES["doc_extract"])]
+            if needs_doc_extract
+            else []
+        ),
         TimelineStep(
             key="intake",
             label="入口模型整理模板与上传文档",
@@ -1371,9 +1388,13 @@ def has_agent_message(messages: list[DebateMessage], round_number: int, agent: A
 
 
 def estimate_intake_seconds(documents: list[UploadedDocument]) -> int:
-    total_chars = sum(len(document.content or "") for document in documents)
+    total_chars = total_document_chars(documents)
     if total_chars <= 0:
         return STEP_ESTIMATES["intake"]
+    if needs_hybrid_intake(documents):
+        summary_chars = min(INTAKE_DOC_SUMMARY_BUDGET, len(documents) * DOC_SUMMARY_MAX_CHARS)
+        extra_blocks = (summary_chars + 3999) // 4000
+        return min(720, STEP_ESTIMATES["intake"] + extra_blocks * 45)
     extra_blocks = (total_chars + 5999) // 6000
     return min(900, STEP_ESTIMATES["intake"] + extra_blocks * 90)
 
@@ -1525,8 +1546,9 @@ def build_structured_brief(
         if item
     ]
     for document in documents:
+        summary_hint = f",摘要:{_compact(document.summary, 120)}" if document.summary else ""
         known_facts.append(
-            f"上传文档:{document.name}({document.doc_type}),注释:{document.note or '无'}"
+            f"上传文档:{document.name}({document.doc_type}),注释:{document.note or '无'}{summary_hint}"
         )
     unknowns = [
         item
@@ -1559,30 +1581,168 @@ def build_structured_brief(
     )
 
 
-def intake_prompt(template: TemplateInput, documents: list[UploadedDocument]) -> str:
-    document_text = "\n\n".join(
-        [
-            "\n".join(
-                [
-                    f"文档名称:{document.name}",
-                    f"文档类型:{document.doc_type}",
-                    f"用户注释:{document.note or '无'}",
-                    "文档全文如下:",
-                    "<document>",
-                    document.content or "无可读取文本",
-                    "</document>",
-                ]
-            )
-            for document in documents
-        ]
+def _document_window(content: str) -> str:
+    text = (content or "").strip()
+    if len(text) <= DOC_EXTRACT_HEAD_CHARS + DOC_EXTRACT_TAIL_CHARS:
+        return text
+    head = text[:DOC_EXTRACT_HEAD_CHARS].rstrip()
+    tail = text[-DOC_EXTRACT_TAIL_CHARS:].lstrip()
+    return f"{head}\n\n[...中间内容已省略以控制 intake 成本...]\n\n{tail}"
+
+
+def total_document_chars(documents: list[UploadedDocument]) -> int:
+    return sum(len((document.content or "").strip()) for document in documents)
+
+
+def needs_hybrid_intake(documents: list[UploadedDocument]) -> bool:
+    return total_document_chars(documents) > DOC_INLINE_THRESHOLD_CHARS
+
+
+def document_extract_prompt(document: UploadedDocument) -> str:
+    excerpt = _document_window(document.content or "") or "无可读取文本"
+    return f"""
+请为入口 briefing 提取单份文档摘要，目标是服务后续科研讨论，而不是复写全文。
+
+文档名称:{document.name}
+文档类型:{document.doc_type}
+用户注释:{document.note or '无'}
+
+文档内容窗口:
+<document>
+{excerpt}
+</document>
+
+输出要求:
+1. 只保留对科研选题/方案推进必要的信息。
+2. 优先提取：研究目标、实验设计、关键数据/现象、已验证结论、限制条件、待验证问题。
+3. 删除重复背景和无关细节，不编造文档中不存在的数据。
+4. 输出 5-8 条中文短 bullet，每条尽量 30-80 字，总长度控制在 180-420 中文字。
+5. 最后一行必须输出:<<<END_OF_AGENT_MESSAGE>>>
+""".strip()
+
+
+def summarize_documents_if_needed(
+    run: RunRecord,
+    provider: ModelProvider,
+    documents: list[UploadedDocument],
+    timeline: list[TimelineStep],
+) -> tuple[list[UploadedDocument], list[TimelineStep], RunRecord]:
+    if not documents or not needs_hybrid_intake(documents):
+        return documents, timeline, run
+
+    step_key = "doc_extract"
+    timeline = start_timeline_step(timeline, step_key)
+    run = update_run_checked(
+        run.run_id,
+        status=RunStatus.INTAKE_RUNNING,
+        current_step="预提取上传文档摘要",
+        timeline=timeline,
     )
+
+    summarized: list[UploadedDocument] = [document.model_copy(deep=True) for document in documents]
+    pending_indices = [index for index, document in enumerate(summarized) if not (document.summary or "").strip()]
+    if not pending_indices:
+        timeline = finish_timeline_step(timeline, step_key)
+        run = update_run_checked(run.run_id, documents=summarized, timeline=timeline)
+        return summarized, timeline, run
+
+    max_workers = min(4, max(1, len(pending_indices)))
+    futures = {}
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        for index in pending_indices:
+            document = summarized[index]
+            futures[
+                executor.submit(
+                    generate_validated,
+                    provider,
+                    agent_key=INTAKE_AGENT.key,
+                    system_prompt=INTAKE_AGENT.system_prompt,
+                    user_prompt=document_extract_prompt(document),
+                    max_tokens=OUTPUT_LIMITS["doc_extract"],
+                    on_retry=retry_callback(run.run_id, step_key, f"预提取上传文档摘要({document.name})"),
+                    kind="debate",
+                    stage_label=f"文档摘要提取:{document.name}",
+                )
+            ] = index
+        for future in as_completed(futures):
+            ensure_not_canceled(run.run_id)
+            index = futures[future]
+            summary = future.result()
+            summarized[index] = summarized[index].model_copy(update={"summary": _compact(summary, DOC_SUMMARY_MAX_CHARS)})
+            run = update_run_checked(run.run_id, documents=summarized)
+
+    timeline = finish_timeline_step(timeline, step_key)
+    run = update_run_checked(run.run_id, documents=summarized, timeline=timeline)
+    return summarized, timeline, run
+
+
+def budget_document_summaries(documents: list[UploadedDocument], max_chars: int = INTAKE_DOC_SUMMARY_BUDGET) -> list[str]:
+    entries = []
+    for document in documents:
+        payload = "\n".join(
+            item
+            for item in [
+                f"文档名称:{document.name}",
+                f"文档类型:{document.doc_type}",
+                f"用户注释:{document.note or '无'}",
+                f"摘要:{document.summary}" if document.summary else "",
+            ]
+            if item
+        )
+        if payload:
+            entries.append(payload)
+    if not entries:
+        return []
+
+    kept: list[str] = []
+    used = 0
+    for entry in entries:
+        if used + len(entry) <= max_chars:
+            kept.append(entry)
+            used += len(entry)
+            continue
+        remaining = max_chars - used
+        if remaining <= 120:
+            break
+        kept.append(_compact(entry, remaining))
+        break
+    return kept
+
+
+def intake_prompt(template: TemplateInput, documents: list[UploadedDocument]) -> str:
+    use_hybrid = needs_hybrid_intake(documents)
+    if use_hybrid:
+        document_entries = budget_document_summaries(documents)
+        document_text = "\n\n".join(document_entries)
+        intake_source_note = "以下内容为上传文档的预提取摘要与用户注释，不再包含文档全文。"
+        reading_requirement = "请基于模板 + 文档摘要形成高密度入口 briefing；如果文档摘要中信息不足，请明确保留不确定性。"
+    else:
+        document_text = "\n\n".join(
+            [
+                "\n".join(
+                    [
+                        f"文档名称:{document.name}",
+                        f"文档类型:{document.doc_type}",
+                        f"用户注释:{document.note or '无'}",
+                        "文档全文如下:",
+                        "<document>",
+                        document.content or "无可读取文本",
+                        "</document>",
+                    ]
+                )
+                for document in documents
+            ]
+        )
+        intake_source_note = "以下内容包含上传文档全文。"
+        reading_requirement = "请完整阅读用户模板和所有上传文档,形成一份只供讨论组使用的入口整合 briefing。"
     return f"""
 {template_prompt(template)}
 
 上传文档:
-{document_text or "无上传文档。"}
+{intake_source_note}
+{document_text or '无上传文档。'}
 
-请完整阅读用户模板和所有上传文档,形成一份只供讨论组使用的入口整合 briefing。
+{reading_requirement}
 要求:
 1. 先分别提炼 design、experiment-data、other 文档中的关键事实、实验设计、已有结果、限制条件和待验证点。
 2. 再合并用户模板,整理成可靠、可控、尽量不流失重点的前置信息。
@@ -1591,6 +1751,7 @@ def intake_prompt(template: TemplateInput, documents: list[UploadedDocument]) ->
 5. 输出中文 Markdown,结构清晰,供后续讨论 Agent 直接使用;后续讨论组不会再看到文档全文。
 6. 严格控制长度:优先高密度信息,不写长篇报告;建议 1800-3000 中文字,最多不超过 4000 中文字。
 7. 对每份上传文档只保留对选题讨论必要的信息:核心设计、关键数据、已验证结论、约束和待验证问题;删除重复背景和无关细节。
+8. 最后一行必须输出:<<<END_OF_AGENT_MESSAGE>>>
 """.strip()
 
 

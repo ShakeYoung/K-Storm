@@ -161,6 +161,7 @@ class UploadedDocument(BaseModel):
     doc_type: str = "other"
     content: str = ""
     note: str = ""
+    summary: str = ""
 
 
 class RunCreate(BaseModel):

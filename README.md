@@ -67,7 +67,7 @@ The detected stage is injected into every agent prompt as a **stage label** + **
 
 - 📋 **Structured template input** — research field, background, existing basis, constraints, goals
 - 📎 **Document upload** with type tagging and per-document notes
-- 🧠 **Intake Agent** digests everything into a dense briefing
+- 🧩 **Hybrid large-document intake** — small uploads go through full-text intake; large uploads trigger per-document summary extraction + budgeted intake synthesis
 - 🤖 **4 discussion agents** — Novelty · Mechanism · Feasibility · Reviewer
 - 🎯 **Moderator** summarizes conflicts, omissions, and next-round questions
 - 📊 **Structured IR** — candidate directions, evidence chains, critique points
@@ -97,6 +97,8 @@ K-Storm is organized as a local research orchestration system: the React console
 
 ```text
 Template + uploaded documents
+  ↓
+(large uploads only) per-document summary extraction + budget control
   ↓
 Intake Agent → dense briefing
   ↓

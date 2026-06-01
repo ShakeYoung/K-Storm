@@ -276,6 +276,7 @@ function normalizeLoadedDocuments(documents = []) {
     ...document,
     id: document.id || `doc-loaded-${Date.now()}-${index}`,
     note: document.note || "",
+    summary: document.summary || "",
   }));
 }
 
@@ -539,6 +540,7 @@ function App() {
         doc_type: inferDocumentType(file.name),
         content: await file.text(),
         note: "",
+        summary: "",
       });
     }
     setDocuments((current) => [...current, ...nextDocuments]);
@@ -1393,6 +1395,11 @@ function TemplatePanel({
                     updateDocument(document.id, { note: event.target.value })
                   }
                 />
+                {document.summary ? (
+                  <div style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.6 }}>
+                    <strong>预提取摘要：</strong>{document.summary}
+                  </div>
+                ) : null}
               </div>
             ))
           ) : (
