@@ -63,6 +63,7 @@ END_MARKERS = {
     "final_report": "<<<END_OF_FINAL_REPORT>>>",
     "quick": "<<<END_OF_QUICK_PROBE>>>",
     "doc_extract": "<<<END_OF_DOC_EXTRACT>>>",
+    "intake": "<<<END_OF_INTAKE>>>",
 }
 
 
@@ -125,7 +126,7 @@ def validate_output_complete(text: str, kind: str) -> list[str]:
     if marker and marker not in raw:
         errors.append(f"缺少结束标记 {marker}")
     body = strip_end_markers(raw)
-    if len(body) < {"debate": 300, "moderator": 300, "group_summary": 400, "final_report": 800, "quick": 200, "doc_extract": 80}.get(kind, 200):
+    if len(body) < {"debate": 300, "moderator": 300, "group_summary": 400, "final_report": 800, "quick": 200, "doc_extract": 80, "intake": 150}.get(kind, 200):
         errors.append("正文过短，疑似截断")
     if kind == "debate":
         if "### 给结构化 IR 的要点摘要" not in body:
@@ -158,6 +159,9 @@ def validate_output_complete(text: str, kind: str) -> list[str]:
         bullet_count = len(re.findall(r"[\n\r]\s*[-*•·]\s+", body)) + (1 if re.match(r"\s*[-*•·]\s+", body) else 0)
         if bullet_count < 2:
             errors.append("文档摘要至少需要 2 条 bullet 要点")
+    elif kind == "intake":
+        if "##" not in body and "**" not in body:
+            errors.append("intake 输出缺少结构化 Markdown 格式")
     return errors
 
 
@@ -322,10 +326,10 @@ def execute_focused_panel(
         provider,
         agent_key=INTAKE_AGENT.key,
         system_prompt=INTAKE_AGENT.system_prompt,
-        user_prompt=intake_prompt(run.template_input, documents) + "\n\n最后一行必须输出:<<<END_OF_AGENT_MESSAGE>>>",
+        user_prompt=intake_prompt(run.template_input, documents),
         max_tokens=OUTPUT_LIMITS["intake"],
         on_retry=retry_callback(run.run_id, "intake", "入口 Agent"),
-        kind="debate",
+        kind="intake",
         stage_label="入口 Agent",
     )
     ensure_not_canceled(run.run_id)
@@ -813,10 +817,10 @@ def execute_run(
         provider,
         agent_key=INTAKE_AGENT.key,
         system_prompt=INTAKE_AGENT.system_prompt,
-        user_prompt=intake_prompt(run.template_input, documents) + "\n\n最后一行必须输出:<<<END_OF_AGENT_MESSAGE>>>",
+        user_prompt=intake_prompt(run.template_input, documents),
         max_tokens=OUTPUT_LIMITS["intake"],
         on_retry=retry_callback(run.run_id, "intake", intake_step),
-        kind="debate",
+        kind="intake",
         stage_label=intake_step,
     )
     ensure_not_canceled(run.run_id)
@@ -974,10 +978,10 @@ def run_intake_step(
         provider,
         agent_key=INTAKE_AGENT.key,
         system_prompt=INTAKE_AGENT.system_prompt,
-        user_prompt=intake_prompt(run.template_input, documents) + "\n\n最后一行必须输出:<<<END_OF_AGENT_MESSAGE>>>",
+        user_prompt=intake_prompt(run.template_input, documents),
         max_tokens=OUTPUT_LIMITS["intake"],
         on_retry=retry_callback(run.run_id, "intake", intake_step),
-        kind="debate",
+        kind="intake",
         stage_label=intake_step,
     )
     ensure_not_canceled(run.run_id)
@@ -1812,7 +1816,7 @@ def intake_prompt(template: TemplateInput, documents: list[UploadedDocument]) ->
 5. 输出中文 Markdown,结构清晰,供后续讨论 Agent 直接使用;后续讨论组不会再看到文档全文。
 6. 严格控制长度:优先高密度信息,不写长篇报告;建议 1800-3000 中文字,最多不超过 4000 中文字。
 7. 对每份上传文档只保留对选题讨论必要的信息:核心设计、关键数据、已验证结论、约束和待验证问题;删除重复背景和无关细节。
-8. 最后一行必须输出:<<<END_OF_AGENT_MESSAGE>>>
+8. 最后一行必须输出:<<<END_OF_INTAKE>>>
 """.strip()
 
 
