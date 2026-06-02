@@ -9,7 +9,7 @@
 Turn your research template + uploaded documents → structured briefing → controlled multi-agent discussion → Markdown topic selection report.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://github.com/ShakeYoung/K-Storm/blob/main/LICENSE)
-[![Version](https://img.shields.io/badge/version-v1.7-green.svg?style=flat-square)](https://github.com/ShakeYoung/K-Storm)
+[![Version](https://img.shields.io/badge/version-v1.8-green.svg?style=flat-square)](https://github.com/ShakeYoung/K-Storm)
 [![Python](https://img.shields.io/badge/python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![React](https://img.shields.io/badge/react-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -26,7 +26,7 @@ K-Storm is a **fully local** research topic brainstorming MVP. Multiple AI agent
 
 **Zero cloud dependency** — works out of the box with the built-in mock provider. Plug in any OpenAI-compatible or Anthropic API to unlock real agent reasoning.
 
-## 🪄 Discussion Modes (V1.7)
+## 🪄 Discussion Modes (v1.8)
 
 | Mode | Agents | Rounds | Best For |
 |:--|:--|:--|:--|
@@ -35,7 +35,7 @@ K-Storm is a **fully local** research topic brainstorming MVP. Multiple AI agent
 | **Quick Probe** | 1 | 1 | Fast sanity check on one question |
 | **Memory Query** | Select agents | 1–5 | Continue from a historical run's context |
 
-## 🧭 Research Stages (V1.7)
+## 🧭 Research Stages (v1.8)
 
 K-Storm automatically detects which phase of the research cycle you're in based on the information density in your template, and adjusts the output focus accordingly. You can also override the detection manually.
 
@@ -78,6 +78,9 @@ The detected stage is injected into every agent prompt as a **stage label** + **
 - 📤 **Export** — MD/PDF, JSON bundle, references export
 - ✅ **Validated generation** — explicit end markers + structural checks prevent half-finished agent messages from advancing the workflow
 - ⚙️ **Per-agent model assignment** — mix mock + OpenAI + Anthropic per agent slot
+- 🏷️ **Discussion naming** — optionally name each run for easy identification in history
+- ⚡ **Recommended config** — one-click model assignment based on agent role and available models
+- 📝 **Markdown briefing** — agent briefing blocks render inline Markdown formatting
 
 ## 🏗️ Architecture
 
@@ -171,9 +174,9 @@ npm install
 npm run dev
 ```
 
-Open <http://localhost:5173> for the full V1.7 experience.
+Open <http://localhost:5173> for the full v1.8 experience.
 
-> The backend also serves a standalone UI at <http://localhost:8000> (legacy, no V1.7 features).
+> The backend also serves a standalone UI at <http://localhost:8000> (legacy, no v1.8 features).
 
 ### 3. Configure Models (optional)
 

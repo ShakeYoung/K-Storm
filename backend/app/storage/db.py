@@ -210,7 +210,7 @@ def list_history(limit: int = 30) -> list[HistoryItem]:
     with connect() as db:
         rows = db.execute(
             """
-            SELECT run_id, status, mode, source_run_id, template_input, structured_ir, created_at, updated_at
+            SELECT run_id, status, mode, research_stage, source_run_id, run_name, template_input, structured_ir, created_at, updated_at
             FROM runs
             ORDER BY updated_at DESC
             LIMIT ?

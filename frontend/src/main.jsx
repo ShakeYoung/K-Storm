@@ -14,7 +14,6 @@ import {
   RefreshCw,
   Settings,
   Sparkles,
-  Zap,
 } from "lucide-react";
 import "./styles/app.css";
 
@@ -69,152 +68,6 @@ const agentRecommendations = {
   group_summarizer: "推荐：结构化能力强的模型，用于把多轮讨论压缩成稳定 IR。",
   output: "推荐：质量最高、中文写作稳定的模型，用于生成最终 Markdown 报告。",
 };
-
-// Recommended model assignments per provider combination.
-// Each entry maps agent slot -> preferred model ID within that provider.
-// "tier" indicates model quality: S (best) > A (strong) > B (fast/cheap).
-const PROVIDER_MODEL_PROFILES = {
-  deepseek: {
-    name: "DeepSeek",
-    profile: {
-      intake: { model: "deepseek-chat", tier: "S", note: "Pro 级理解力" },
-      novelty: { model: "deepseek-chat", tier: "A", note: "创造性强" },
-      mechanism: { model: "deepseek-chat", tier: "S", note: "推理稳定" },
-      feasibility: { model: "deepseek-chat", tier: "A", note: "细节可靠" },
-      reviewer: { model: "deepseek-chat", tier: "S", note: "批判性" },
-      moderator: { model: "deepseek-chat", tier: "S", note: "对比能力强" },
-      group_summarizer: { model: "deepseek-chat", tier: "A", note: "结构化" },
-      output: { model: "deepseek-chat", tier: "S", note: "报告质量" },
-    },
-  },
-  dashscope: {
-    name: "DashScope (百炼)",
-    profile: {
-      intake: { model: "qwen3.5-plus", tier: "S" },
-      novelty: { model: "qwen3.5-plus", tier: "A" },
-      mechanism: { model: "glm-5.1", tier: "S" },
-      feasibility: { model: "qwen3.5-plus", tier: "A" },
-      reviewer: { model: "qwen3.5-plus", tier: "S" },
-      moderator: { model: "qwen3.5-plus", tier: "S" },
-      group_summarizer: { model: "qwen3.5-plus", tier: "A" },
-      output: { model: "qwen3.5-plus", tier: "S" },
-    },
-  },
-  openai: {
-    name: "OpenAI",
-    profile: {
-      intake: { model: "gpt-4o", tier: "S" },
-      novelty: { model: "gpt-4o-mini", tier: "B" },
-      mechanism: { model: "gpt-4o", tier: "S" },
-      feasibility: { model: "gpt-4o-mini", tier: "B" },
-      reviewer: { model: "gpt-4o", tier: "S" },
-      moderator: { model: "gpt-4o", tier: "S" },
-      group_summarizer: { model: "gpt-4o-mini", tier: "B" },
-      output: { model: "gpt-4o", tier: "S" },
-    },
-  },
-  openrouter: {
-    name: "OpenRouter",
-    profile: {
-      intake: { model: "anthropic/claude-sonnet-4", tier: "S" },
-      novelty: { model: "deepseek/deepseek-chat", tier: "B" },
-      mechanism: { model: "anthropic/claude-sonnet-4", tier: "S" },
-      feasibility: { model: "deepseek/deepseek-chat", tier: "B" },
-      reviewer: { model: "anthropic/claude-sonnet-4", tier: "S" },
-      moderator: { model: "anthropic/claude-sonnet-4", tier: "S" },
-      group_summarizer: { model: "google/gemini-2.5-pro", tier: "A" },
-      output: { model: "anthropic/claude-sonnet-4", tier: "S" },
-    },
-  },
-  "kimi-coding": {
-    name: "Kimi Coding Plan",
-    profile: {
-      intake: { model: "kimi-for-coding", tier: "A" },
-      novelty: { model: "kimi-for-coding", tier: "A" },
-      mechanism: { model: "kimi-for-coding", tier: "A" },
-      feasibility: { model: "kimi-for-coding", tier: "A" },
-      reviewer: { model: "kimi-for-coding", tier: "A" },
-      moderator: { model: "kimi-for-coding", tier: "A" },
-      group_summarizer: { model: "kimi-for-coding", tier: "A" },
-      output: { model: "kimi-for-coding", tier: "A" },
-    },
-  },
-  "bailian-coding": {
-    name: "百炼 Coding Plan",
-    profile: {
-      intake: { model: "qwen3.5-plus", tier: "S" },
-      novelty: { model: "qwen3.5-plus", tier: "A" },
-      mechanism: { model: "glm-5", tier: "S" },
-      feasibility: { model: "qwen3.5-plus", tier: "A" },
-      reviewer: { model: "qwen3.5-plus", tier: "S" },
-      moderator: { model: "qwen3.5-plus", tier: "S" },
-      group_summarizer: { model: "qwen3.5-plus", tier: "A" },
-      output: { model: "glm-5", tier: "S" },
-    },
-  },
-  "volcengine-coding": {
-    name: "火山引擎 Coding Plan",
-    profile: {
-      intake: { model: "doubao-seed-2.0-pro", tier: "S" },
-      novelty: { model: "doubao-seed-2.0-lite", tier: "B" },
-      mechanism: { model: "doubao-seed-2.0-pro", tier: "S" },
-      feasibility: { model: "doubao-seed-2.0-lite", tier: "B" },
-      reviewer: { model: "doubao-seed-2.0-pro", tier: "S" },
-      moderator: { model: "doubao-seed-2.0-pro", tier: "S" },
-      group_summarizer: { model: "doubao-seed-2.0-lite", tier: "B" },
-      output: { model: "doubao-seed-2.0-pro", tier: "S" },
-    },
-  },
-};
-
-// Priority order for which provider to prefer when multiple have API keys.
-const PROVIDER_PRIORITY = ["bailian-coding", "volcengine-coding", "kimi-coding", "dashscope", "deepseek", "openrouter", "openai"];
-
-function buildRecommendedAssignments(providers) {
-  // Find providers with API keys
-  const available = providers.filter((p) => p.api_key && p.api_key.trim());
-  if (!available.length) return null;
-
-  // Sort by priority
-  const ordered = [...available].sort((a, b) => {
-    const ai = PROVIDER_PRIORITY.indexOf(a.id);
-    const bi = PROVIDER_PRIORITY.indexOf(b.id);
-    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-  });
-
-  // For each agent slot, find the best available model
-  const assignments = {};
-  const notes = {};
-  for (const [key] of agentSlots) {
-    let best = null;
-    // First pass: try to find a provider with a matching model already added
-    for (const provider of ordered) {
-      const profile = PROVIDER_MODEL_PROFILES[provider.id];
-      if (!profile) continue;
-      const rec = profile.profile[key];
-      if (!rec) continue;
-      const match = provider.models.find((m) => m.model === rec.model || m.id === rec.model);
-      if (match) {
-        best = { provider, model: match, tier: rec.tier };
-        break;
-      }
-    }
-    // Second pass: use the first provider that has any models
-    if (!best) {
-      for (const provider of ordered) {
-        if (provider.models.length) {
-          best = { provider, model: provider.models[0], tier: "?" };
-          break;
-        }
-      }
-    }
-    if (best) {
-      assignments[key] = `${best.provider.id}:${best.model.id}`;
-      notes[key] = `${best.provider.name} / ${best.model.name} (${best.tier})`;
-    }
-  }
-  return Object.keys(assignments).length ? { assignments, notes } : null;
-}
 
 const apiTypes = [
   ["openai_compatible", "OpenAI Compatible"],
@@ -1097,6 +950,8 @@ function App() {
                 removeDocument={removeDocument}
                 onSubmit={handleCreateAndGo}
                 mode={discussionMode}
+                runName={runName}
+                setRunName={setRunName}
               />
               )}
             </div>
@@ -1413,6 +1268,8 @@ function TemplatePanel({
   removeDocument,
   onSubmit,
   mode = "full",
+  runName = "",
+  setRunName,
 }) {
   const isQuickOrMemory = mode === "quick" || mode === "memory";
   const submitLabel = mode === "quick" ? "快速探测" : mode === "memory" ? "查询记忆" : mode === "focused" ? "启动专题研讨" : "开始分析";
@@ -1432,18 +1289,16 @@ function TemplatePanel({
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-        <label className="field" style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
-          <span style={{ fontSize: 12, fontWeight: 600 }}>讨论名称（选填，留空则用研究领域）</span>
-          <input
-            type="text"
-            value={runName}
-            placeholder={`如：harness-attack 结果诊断`}
-            onChange={(event) => setRunName(event.target.value)}
-            style={{ fontSize: 13, padding: "6px 10px", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", background: "var(--panel-bg)" }}
-          />
-        </label>
-      </div>
+      <label className="field" style={{ marginBottom: 4 }}>
+        <span style={{ fontSize: 12, fontWeight: 600 }}>讨论名称（选填，留空则用研究领域）</span>
+        <input
+          type="text"
+          value={runName}
+          placeholder="如：harness-attack 结果诊断"
+          onChange={(event) => setRunName(event.target.value)}
+          style={{ fontSize: 13, padding: "6px 10px", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", background: "var(--panel-bg)" }}
+        />
+      </label>
 
       <div className="form-grid">
         {(() => {
@@ -1668,7 +1523,7 @@ function MemoryQueryPanel({ history, run, setRun, setError, onStartRun }) {
         <div style={{ display: "grid", gap: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--accent-soft)", border: "1px solid var(--accent)", borderRadius: "var(--radius-sm)", padding: "12px 16px" }}>
             <div>
-              <div style={{ color: "var(--accent-strong)", fontWeight: 700, fontSize: 14 }}>已读取记忆：{loadedRun.run_name || loadedRun.template_input?.field || loadedRun.run_id}</div>
+              <div style={{ color: "var(--accent-strong)", fontWeight: 700, fontSize: 14 }}>已读取记忆：{loadedRun.template_input?.field || loadedRun.run_id}</div>
               <div style={{ color: "var(--muted)", fontSize: 12, marginTop: 2 }}>{new Date(loadedRun.created_at).toLocaleString()} · {loadedRun.debate_messages?.length || 0} 条发言</div>
             </div>
             <button className="icon-button" onClick={resetSelection} style={{ fontSize: 12, minHeight: 32 }}>
@@ -1924,8 +1779,7 @@ function IntelRail({ run, loading, modelSettings, activePage, onNavigate, onCopy
                 </span>
               </strong>
             </div>
-            {run.run_name ? <div className="intel-row"><span>名称</span><strong style={{fontSize:12}}>{run.run_name.length > 20 ? run.run_name.slice(0,20) + "..." : run.run_name}</strong></div> : null}
-            {run.template_input?.field ? <div className="intel-row"><span>领域</span><strong style={{fontSize:12}}>{run.template_input.field.length > 20 ? run.template_input.field.slice(0,20) + "..." : run.template_input.field}</strong></div> : null}
+            {run.field ? <div className="intel-row"><span>领域</span><strong style={{fontSize:12}}>{run.field.length > 20 ? run.field.slice(0,20) + "..." : run.field}</strong></div> : null}
             {run.research_stage ? <div className="intel-row"><span>阶段</span><strong>{{auto: "自动", topic_exploration: "选题探索", plan_refinement: "方案收敛", result_diagnosis: "结果诊断", pivot_evaluation: "转向评估"}[run.research_stage] || run.research_stage}</strong></div> : null}
           </div>
         ) : (
@@ -2393,6 +2247,37 @@ function SettingsModal({ settings, setSettings, onClose, setError }) {
     })),
   );
 
+  function applyRecommendedConfig() {
+    const allModels = settings.providers.flatMap((p) =>
+      p.models.map((m) => ({
+        value: `${p.id}:${m.id}`,
+        searchText: `${p.name} ${m.name} ${m.model}`.toLowerCase(),
+      })),
+    );
+    if (!allModels.length) { setError("请先添加至少一个模型。"); return; }
+    function pick(keywords, fallbackIdx) {
+      for (const kws of keywords) {
+        const found = allModels.find((o) => kws.every((k) => o.searchText.includes(k)));
+        if (found) return found.value;
+      }
+      return allModels[fallbackIdx ?? 0]?.value || "";
+    }
+    const map = {
+      intake: pick([["gpt", "5.5"], ["claude", "opus"], ["glm", "5.1"], ["deepseek", "pro"], ["mimo", "pro"], ["qwen", "max"], ["kimi"]]),
+      novelty: pick([["gpt", "5.5"], ["claude", "opus"], ["gpt", "5.4"], ["mimo", "pro"], ["flash"], ["plus"]]),
+      mechanism: pick([["gpt", "5.5"], ["claude", "opus"], ["deepseek", "pro"], ["glm", "5.1"], ["mimo", "pro"], ["qwen", "max"]]),
+      feasibility: pick([["gpt", "5.4"], ["deepseek", "pro"], ["flash"], ["plus"], ["turbo"]]),
+      reviewer: pick([["claude", "opus"], ["gpt", "5.5"], ["deepseek", "pro"], ["glm", "5.1"], ["mimo", "pro"]]),
+      moderator: pick([["gpt", "5.4"], ["flash"], ["plus"], ["turbo"], ["mimo", "v2.5"]]),
+      group_summarizer: pick([["deepseek", "pro"], ["gpt", "5.4"], ["glm", "5.1"], ["mimo", "pro"], ["claude", "opus"]]),
+      output: pick([["gpt", "5.5"], ["claude", "opus"], ["deepseek", "pro"], ["glm", "5.1"], ["mimo", "pro"], ["qwen", "max"]]),
+    };
+    const filtered = {};
+    for (const [k, v] of Object.entries(map)) { if (v) filtered[k] = v; }
+    setSettings((s) => ({ ...s, assignments: { ...s.assignments, ...filtered } }));
+    setError("");
+  }
+
   function updateProvider(patch) {
     setSettings((current) => ({
       ...current,
@@ -2708,31 +2593,12 @@ function SettingsModal({ settings, setSettings, onClose, setError }) {
             ) : null}
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
             <div>
-              <h3>Agent 模型位置</h3>
-              <p>为不同模块分配不同能力侧重的模型。</p>
+              <h3 style={{ display: "inline" }}>Agent 模型位置</h3>
+              <span style={{ fontSize: 12, color: "var(--muted)", marginLeft: 8 }}>为不同模块分配不同能力侧重的模型。</span>
             </div>
-            {(() => {
-              const rec = buildRecommendedAssignments(settings.providers);
-              if (!rec) return null;
-              return (
-                <button
-                  className="primary-action"
-                  style={{ minHeight: 34, fontSize: 12, whiteSpace: "nowrap", flexShrink: 0 }}
-                  onClick={() => {
-                    setSettings((current) => ({
-                      ...current,
-                      assignments: { ...current.assignments, ...rec.assignments },
-                    }));
-                    setError("");
-                  }}
-                  title={Object.entries(rec.notes).map(([k, v]) => `${k}: ${v}`).join("\n")}
-                >
-                  <Zap size={14} /> 推荐配置
-                </button>
-              );
-            })()}
+            <button className="primary-action" style={{ minHeight: 28, fontSize: 12, whiteSpace: "nowrap" }} onClick={applyRecommendedConfig}>推荐配置</button>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
             {agentSlots.map(([key, label, group]) => (
