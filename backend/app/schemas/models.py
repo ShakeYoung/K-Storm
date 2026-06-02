@@ -174,6 +174,7 @@ class RunCreate(BaseModel):
     probe_agent: str = ""
     probe_question: str = ""
     source_run_id: str = ""
+    run_name: str = ""
     model_settings: AgentModelSettings | None = None
     documents: list[UploadedDocument] = Field(default_factory=list)
 
@@ -190,6 +191,7 @@ class RunRecord(BaseModel):
     mode: DiscussionMode = DiscussionMode.FULL_DELIBERATION
     research_stage: ResearchStage = ResearchStage.AUTO
     template_input: TemplateInput
+    run_name: str = ""
     rounds: int = 3
     parallel_first_round: bool = False
     selected_agents: list[str] = Field(default_factory=list)
@@ -218,6 +220,7 @@ class HistoryItem(BaseModel):
     mode: DiscussionMode = DiscussionMode.FULL_DELIBERATION
     research_stage: ResearchStage = ResearchStage.AUTO
     source_run_id: str = ""
+    run_name: str = ""
     field: str
     target_output: str
     decision_summary: str = ""

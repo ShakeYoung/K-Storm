@@ -303,6 +303,7 @@ def create_run_record(payload: RunCreate) -> RunRecord:
         probe_agent=payload.probe_agent,
         probe_question=payload.probe_question,
         source_run_id=payload.source_run_id,
+        run_name=payload.run_name,
     )
 
 

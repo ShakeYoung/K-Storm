@@ -101,6 +101,8 @@ def init_db() -> None:
             db.execute("ALTER TABLE runs ADD COLUMN ir_warnings TEXT NOT NULL DEFAULT '[]'")
         if "external_references" not in columns:
             db.execute("ALTER TABLE runs ADD COLUMN external_references TEXT NOT NULL DEFAULT '[]'")
+        if "run_name" not in columns:
+            db.execute("ALTER TABLE runs ADD COLUMN run_name TEXT NOT NULL DEFAULT ''")
 
 
 def create_run(
@@ -116,6 +118,7 @@ def create_run(
     probe_agent: str = "",
     probe_question: str = "",
     source_run_id: str = "",
+    run_name: str = "",
 ) -> RunRecord:
     now = utc_now()
     document_payload = json.dumps(
@@ -130,9 +133,9 @@ def create_run(
             INSERT INTO runs (
                 run_id, status, mode, research_stage, template_input, rounds, parallel_first_round,
                 model_settings, documents, selected_agents, probe_agent, probe_question,
-                source_run_id, debate_messages, created_at, updated_at
+                source_run_id, run_name, debate_messages, created_at, updated_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 run_id,
@@ -148,6 +151,7 @@ def create_run(
                 probe_agent,
                 probe_question,
                 source_run_id,
+                run_name,
                 "[]",
                 now,
                 now,
@@ -229,6 +233,7 @@ def list_history(limit: int = 30) -> list[HistoryItem]:
                 mode=row["mode"] if "mode" in row.keys() else "full",
                 research_stage=row["research_stage"] if "research_stage" in row.keys() else "auto",
                 source_run_id=row["source_run_id"] if "source_run_id" in row.keys() else "",
+                run_name=row["run_name"] if "run_name" in row.keys() else "",
                 field=template.field,
                 target_output=template.target_output,
                 decision_summary=structured_ir.decision_summary if structured_ir else "",
@@ -283,6 +288,7 @@ def row_to_run(row: sqlite3.Row) -> RunRecord:
         mode=row["mode"] if "mode" in row.keys() else "full",
         research_stage=row["research_stage"] if "research_stage" in row.keys() else "auto",
         template_input=TemplateInput.model_validate_json(row["template_input"]),
+        run_name=row["run_name"] if "run_name" in row.keys() else "",
         rounds=row["rounds"],
         parallel_first_round=bool(row["parallel_first_round"]),
         selected_agents=selected_agents_raw,
